@@ -8,7 +8,7 @@ on:
         type: string
 
 jobs:
-  build:
+  build-terraform:
     runs-on: ubuntu-latest
 
     steps:

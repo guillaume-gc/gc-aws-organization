@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    uses: guillaume-gc/aws-organization-infra/.github/workflows/build.yml@mail
+    uses: guillaume-gc/aws-organization-infra/.github/workflows/build.yml@main
   deploy:
     needs: build
-    uses: guillaume-gc/aws-organization-infra/.github/workflows/deploy.yml@mail
+    uses: guillaume-gc/aws-organization-infra/.github/workflows/deploy.yml@main
