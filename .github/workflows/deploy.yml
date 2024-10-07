@@ -29,11 +29,10 @@ jobs:
           aws-region: us-west-1
 
       - name: Perform git checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/checkout@v4
-        name: Set up Terraform
-
-      - uses: hashicorp/setup-terraform@v3
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ inputs.terraform_version }}
 
