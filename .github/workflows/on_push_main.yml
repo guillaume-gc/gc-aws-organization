@@ -1,0 +1,12 @@
+name: Commit pushed to main branch
+
+on:
+  push:
+    - branches:
+        - main
+
+jobs:
+  build:
+    uses: guillaume-gc/aws-organization-infra/.github/workflows/build.yml@mail
+  deploy:
+    uses: guillaume-gc/aws-organization-infra/.github/workflows/deploy.yml@mail
