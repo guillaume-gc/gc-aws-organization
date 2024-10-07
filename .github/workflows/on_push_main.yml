@@ -2,12 +2,19 @@ name: Commit pushed to main branch
 
 on:
   push:
-    - branches:
-        - main
+    branches:
+      - main
+
+env:
+  TERRAFORM_VERSION: '1.9.7'
 
 jobs:
   build:
     uses: guillaume-gc/aws-organization-infra/.github/workflows/build.yml@main
+    with:
+      terraform_version: ${{ env.TERRAFORM_VERSION }}
   deploy:
     needs: build
     uses: guillaume-gc/aws-organization-infra/.github/workflows/deploy.yml@main
+    with:
+      terraform_version: ${{ env.TERRAFORM_VERSION }}
