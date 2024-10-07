@@ -8,36 +8,37 @@ on:
         type: string
 
 jobs:
-  runs-on: ubuntu-latest
+  deploy:
+    runs-on: ubuntu-latest
 
-  permissions:
-    id-token: write
-    contents: read
+    permissions:
+      id-token: write
+      contents: read
 
-  steps:
-    - name: Download built files as an artefact
-      uses: actions/download-artifact@v4
-      with:
-        name: built files
-        path: ./.terraform
+    steps:
+      - name: Download built files as an artefact
+        uses: actions/download-artifact@v4
+        with:
+          name: built files
+          path: ./.terraform
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        role-to-assume: arn:aws:iam::273051913282:role/GitHub-OIDC-IAM-Role-qOCNY8Q7iqCI
-        aws-region: us-west-1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::273051913282:role/GitHub-OIDC-IAM-Role-qOCNY8Q7iqCI
+          aws-region: us-west-1
 
-    - name: Perform git checkout
+      - name: Perform git checkout
 
-    - uses: actions/checkout@v4
-      name: Set up Terraform
+      - uses: actions/checkout@v4
+        name: Set up Terraform
 
-    - uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: ${{ inputs.terraform_version }}
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
 
-    - name: Perform Terraform Plan
-      run: terraform plan -no-color
+      - name: Perform Terraform Plan
+        run: terraform plan -no-color
 
-    - name: Perform Terraform Apply
-      run: terraform apply -auto-approve -no-color
+      - name: Perform Terraform Apply
+        run: terraform apply -auto-approve -no-color
