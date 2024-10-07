@@ -1,11 +1,7 @@
 name: Build resources
 
 on:
-  workflow_call:
-    inputs:
-      terraform_version:
-        required: true
-        type: string
+  workflow_call
 
 jobs:
   build-terraform:
@@ -18,7 +14,7 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: ${{ inputs.terraform_version }}
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
 
       - name: Perform Terraform Init
         run: terraform init -no-color

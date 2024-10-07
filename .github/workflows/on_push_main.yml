@@ -5,16 +5,9 @@ on:
     branches:
       - main
 
-env:
-  TERRAFORM_VERSION: '1.9.7'
-
 jobs:
   build:
     uses: ./.github/workflows/build.yml
-    with:
-      terraform_version: ${{ env.TERRAFORM_VERSION }}
   deploy:
     needs: build
     uses: ./.github/workflows/deploy.yml
-    with:
-      terraform_version: ${{ env.TERRAFORM_VERSION }}
