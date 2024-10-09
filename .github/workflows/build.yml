@@ -30,7 +30,7 @@ jobs:
         run: terraform init -no-color -backend-config="key=main.tfvars"
 
       - name: Project repository log
-        run: ls ./
+        run: ls ./ -a
 
       - name: Upload build resources artifact
         uses: actions/upload-artifact@v4
