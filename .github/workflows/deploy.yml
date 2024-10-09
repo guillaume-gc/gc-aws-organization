@@ -15,12 +15,6 @@ jobs:
       - name: Git checkout
         uses: actions/checkout@v4
 
-      - name: Download build files artefact
-        uses: actions/download-artifact@v4
-        with:
-          name: built files
-          path: ./.terraform/
-
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -35,8 +29,8 @@ jobs:
       - name: Project repository log
         run: ls ./ -a
 
-      - name: Terraform Plan
-        run: terraform plan -no-color
+      - name: Terraform Init
+        run: terraform init -no-color -backend-config="key=main.tfvars"
 
       - name: Terraform Apply
         run: terraform apply -auto-approve -no-color
