@@ -8,8 +8,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: List environment variables
+      - name: List environment context
         run: env
+
+      - name: List variable context
+        run: vars
 
       - name: Git checkout
         uses: actions/checkout@v4
@@ -17,13 +20,13 @@ jobs:
       - name: Create temporary AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ env.CICD_IAM_ROLE }}
-          aws-region: ${{ env.CICD_AWS_REGION }}
+          role-to-assume: ${{ vars.CICD_IAM_ROLE }}
+          aws-region: ${{ vars.CICD_AWS_REGION }}
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_version: ${{ vars.TERRAFORM_VERSION }}
 
       - name: Terraform Init
         run: terraform init -no-color -backend-config="key=main.tfvars"
