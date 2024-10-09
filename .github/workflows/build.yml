@@ -8,18 +8,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Perform git checkout
+      - name: Git checkout
         uses: actions/checkout@v4
+
+      - name: Create temporary AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.CICD_IAM_ROLE }}
+          aws-region: ${{ env.CICD_AWS_REGION }}
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
 
-      - name: Perform Terraform Init
-        run: terraform init -no-color
+      - name: Terraform Init
+        run: terraform init -no-color -backend-config="key=main.tfvars"
 
-      - name: Uploading built resources as an artifact
+      - name: Upload build resources artifact
         uses: actions/upload-artifact@v4
         with:
           name: built files

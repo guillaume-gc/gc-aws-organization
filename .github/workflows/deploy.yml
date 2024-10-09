@@ -12,17 +12,17 @@ jobs:
       contents: read
 
     steps:
-      - name: Download built files as an artefact
+      - name: Download build files artefact
         uses: actions/download-artifact@v4
         with:
           name: built files
           path: ./.terraform
 
-      - name: Configure AWS credentials
+      - name: Create temporary AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::273051913282:role/GitHub-OIDC-IAM-Role-qOCNY8Q7iqCI
-          aws-region: us-west-1
+          role-to-assume: ${{ env.CICD_IAM_ROLE }}
+          aws-region: ${{ env.CICD_AWS_REGION }}
 
       - name: Perform git checkout
         uses: actions/checkout@v4
