@@ -8,6 +8,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: List environment variables
+        run: echo CICD_IAM_ROLE -> $CICD_IAM_ROLE CICD_AWS_REGION -> ${CICD_AWS_REGION}
+
       - name: Git checkout
         uses: actions/checkout@v4
 
