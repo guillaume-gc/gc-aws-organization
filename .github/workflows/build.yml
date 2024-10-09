@@ -8,12 +8,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: List environment context
-        run: env
-
-      - name: List variable context
-        run: vars
-
       - name: Git checkout
         uses: actions/checkout@v4
 
