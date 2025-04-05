@@ -1,1 +1,27 @@
-# AWS Organization Infra
+# GC AWS Organization
+
+This project uses Terraform to create and manage my own AWS Organization using GitHub Actions. It simplifies the process of setting up and managing my AWS accounts, organizational units (OUs), service control policies (SCPs), and other related resources.
+
+## Prerequisites
+1. Terraform
+    - Make sure to install Terraform (>= 1.9.x) as it is the primary tool used in this setup.
+
+2. Git (optional, for version control).
+
+## Getting Started
+
+### Installation
+1. Clone this repository:
+    ```bash
+    git clone https://github.com/yourusername/aws-organization-infra.git
+    cd aws-organization-infra
+    ```
+
+2. Initialize Terraform:
+    ```bash
+    terraform init
+    ```
+
+### Deployment
+
+This project is deployed remotely using GitHub Actions and a [GitHub OIDC Provider for AWS](https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services) to generate temporary credentials.
