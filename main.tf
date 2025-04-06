@@ -8,3 +8,14 @@ resource "aws_organizations_organization" "organization" {
 
   feature_set = "ALL"
 }
+
+module "global_budget" {
+  source = "./modules/monitoring/budget/global"
+
+  email_addresses = [
+    "gc.alert@pm.me"
+  ]
+
+  forecasted_absolute_threshold = 1
+  actual_absolute_threshold = 1
+}
