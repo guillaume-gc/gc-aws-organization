@@ -9,6 +9,10 @@ resource "aws_organizations_organization" "organization" {
   feature_set = "ALL"
 }
 
+module "organization_root" {
+  source = "./modules/organization/root"
+}
+
 module "global_budget" {
   source = "./modules/monitoring/budget/global"
 
