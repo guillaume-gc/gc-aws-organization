@@ -1,9 +1,9 @@
 resource "aws_budgets_budget" "global" {
-  name              = "budget-global-monthly"
-  budget_type       = "COST"
-  limit_amount      = "1"
-  limit_unit        = "USD"
-  time_unit         = "MONTHLY"
+  name         = "budget-global-monthly"
+  budget_type  = "COST"
+  limit_amount = "1"
+  limit_unit   = "USD"
+  time_unit    = "MONTHLY"
 
   notification {
     comparison_operator        = "GREATER_THAN"

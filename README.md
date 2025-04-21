@@ -6,7 +6,7 @@ This project uses Terraform to create and manage my own AWS Organization using G
 1. Terraform
     - Make sure to install Terraform (>= 1.9.x) as it is the primary tool used in this setup.
 
-2. Git (optional, for version control).
+2. Git.
 
 ## Getting Started
 

@@ -17,5 +17,5 @@ module "global_budget" {
   ]
 
   forecasted_absolute_threshold = 1
-  actual_absolute_threshold = 1
+  actual_absolute_threshold     = 1
 }

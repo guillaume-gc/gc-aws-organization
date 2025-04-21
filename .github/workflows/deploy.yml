@@ -32,5 +32,8 @@ jobs:
       - name: Terraform Init
         run: terraform init -no-color -backend-config="key=main.tfvars"
 
+      - name: Terraform Format check
+        run: terraform fmt -no-color -check -recursive
+
       - name: Terraform Apply
-        run: terraform apply -auto-approve -no-color
+        run: terraform apply -no-color -auto-approve
