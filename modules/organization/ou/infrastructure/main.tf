@@ -5,7 +5,7 @@ locals {
 }
 
 resource "aws_organizations_organizational_unit" "infrastructure" {
-  name      = "infrastructure"
+  name      = "Infrastructure"
   parent_id = local.root_organization_id
 }
 
