@@ -12,3 +12,8 @@ terraform {
     region = "eu-west-1"
   }
 }
+
+module "iam-identity-center" {
+  source  = "aws-ia/iam-identity-center/aws"
+  version = "1.0.2"
+}
