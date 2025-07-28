@@ -1,16 +1,9 @@
-terraform {
-  required_providers {
-    aws = {
-      source = "hashicorp/aws"
-      configuration_aliases = [
-        aws.infrastructure
-      ]
-    }
-  }
-}
-
 module "aws-iam-identity-center" {
   source = "aws-ia/iam-identity-center/aws"
+
+  providers = {
+    aws = aws.infrastructure
+  }
 
   sso_groups = {
     Admin : {
