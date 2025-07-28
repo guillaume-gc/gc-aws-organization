@@ -3,7 +3,8 @@ resource "aws_organizations_organization" "organization" {
     "cloudtrail.amazonaws.com",
     "config.amazonaws.com",
     "account.amazonaws.com",
-    "ram.amazonaws.com"
+    "ram.amazonaws.com",
+    "sso.amazonaws.com", // IAM Identity Center.
   ]
 
   feature_set = "ALL"
