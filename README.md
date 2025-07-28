@@ -16,11 +16,13 @@ This project uses Terraform to create and manage my own AWS Organization using G
     git clone https://github.com/yourusername/aws-organization-infra.git
     cd aws-organization-infra
     ```
+2. Make sure you have valid AWS credentials.
 
-2. Initialize Terraform:
+3. Initialize Terraform:
     ```bash
-    terraform init
+    terraform init -backend-config="key=$(git rev-parse --abbrev-ref HEAD).tfvars"
     ```
+(`git rev-parse --abbrev-ref HEAD` returns the checked-in Git branch name.)
 
 ### Deployment
 
