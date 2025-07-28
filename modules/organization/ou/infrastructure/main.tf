@@ -10,9 +10,8 @@ resource "aws_organizations_organizational_unit" "infrastructure" {
 }
 
 module "identity_account" {
-  source = "../../account/default"
+  source = "../../template/account"
 
   name      = "Identity"
   parent_id = aws_organizations_organizational_unit.infrastructure.id
-
 }
