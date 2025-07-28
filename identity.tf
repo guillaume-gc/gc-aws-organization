@@ -4,13 +4,6 @@ locals {
   management_account_id = data.aws_caller_identity.current.account_id
 }
 
-module "identity_account" {
-  source = "../../template/account"
-
-  name      = "Identity"
-  parent_id = aws_organizations_organizational_unit.infrastructure.id
-}
-
 module "aws-iam-identity-center" {
   source = "aws-ia/iam-identity-center/aws"
 
