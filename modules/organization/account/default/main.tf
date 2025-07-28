@@ -1,6 +1,5 @@
 resource "random_id" "email_seed" {
   keepers = {
-    # Generate a new id each time we switch to a new AMI id
     ami_id = var.name
   }
 
