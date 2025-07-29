@@ -12,7 +12,7 @@ data "aws_organizations_organizational_unit_child_accounts" "ou_security_account
 }
 
 locals {
-  management_account_id = data.aws_caller_identity.current.account_id
+  management_account_id  = data.aws_caller_identity.current.account_id
   log_archive_account_id = [for n in data.aws_organizations_organizational_unit_child_accounts.ou_security_accounts.accounts : n if n.name == "Log-Archive"][0].id
 }
 
