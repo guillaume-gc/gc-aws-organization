@@ -10,7 +10,7 @@ resource "aws_organizations_account" "default_account" {
   parent_id = var.parent_id
 
   name  = var.name
-  email = "org.acc+${lower(var.name)}-${random_id.email_seed.hex}@pm.me"
+  email = "gc.org.acc+${lower(var.name)}-${random_id.email_seed.hex}@pm.me"
 
   role_name = "${lower(var.name)}-root-role"
 
