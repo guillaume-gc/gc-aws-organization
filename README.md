@@ -1,6 +1,8 @@
 # GC AWS Organization
 
-This project uses Terraform to create and manage my own AWS Organization using GitHub Actions. It simplifies the process of setting up and managing my AWS accounts, organizational units (OUs), service control policies (SCPs), and other related resources.
+This personal project uses Terraform to create and manage my own AWS Organization using GitHub Actions. It simplifies the process of setting up and managing my AWS accounts, organizational units (OUs), service control policies (SCPs), and other related resources.
+
+**Keep in mind this project was made for a specific AWS Organization. A lot of static values such as S3 bucket names or account IDs will not work in another Organization.**
 
 ## Prerequisites
 
@@ -17,7 +19,7 @@ The OIDC Provider is deployed using CloudFormation rather than Terraform to reso
 ## Getting Started
 
 ### Installation
-1. Clone this repository:
+1. Clone this repository and move to its root:
    ```bash
    git clone https://github.com/guillaume-gc/gc-aws-organization;
    cd gc-aws-organization
