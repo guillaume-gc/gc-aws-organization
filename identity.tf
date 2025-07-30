@@ -2,18 +2,18 @@ data "aws_caller_identity" "current" {}
 
 data "aws_organizations_organization" "org" {}
 
-data "aws_organizations_organizational_unit" "ou_security" {
-  parent_id = data.aws_organizations_organization.org.roots[0].id
-  name      = "Security"
-}
+# data "aws_organizations_organizational_unit" "ou_security" {
+#   parent_id = data.aws_organizations_organization.org.roots[0].id
+#   name      = "Security"
+# }
 
-data "aws_organizations_organizational_unit_child_accounts" "ou_security_accounts" {
-  parent_id = data.aws_organizations_organizational_unit.ou_security.id
-}
+# data "aws_organizations_organizational_unit_child_accounts" "ou_security_accounts" {
+#   parent_id = data.aws_organizations_organizational_unit.ou_security.id
+# }
 
 locals {
   management_account_id  = data.aws_caller_identity.current.account_id
-  log_archive_account_id = [for n in data.aws_organizations_organizational_unit_child_accounts.ou_security_accounts.accounts : n if n.name == "Log-Archive"][0].id
+  # log_archive_account_id = [for n in data.aws_organizations_organizational_unit_child_accounts.ou_security_accounts.accounts : n if n.name == "Log-Archive"][0].id
 }
 
 module "aws-iam-identity-center" {
@@ -48,7 +48,7 @@ module "aws-iam-identity-center" {
       permission_sets = ["AdministratorAccess", "ViewOnlyAccess"]
       account_ids = [
         local.management_account_id,
-        local.log_archive_account_id,
+        "055449818624",
       ]
     },
   }

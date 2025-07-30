@@ -3,10 +3,16 @@
 This project uses Terraform to create and manage my own AWS Organization using GitHub Actions. It simplifies the process of setting up and managing my AWS accounts, organizational units (OUs), service control policies (SCPs), and other related resources.
 
 ## Prerequisites
-1. Terraform
-    - Make sure to install Terraform (>= 1.9.x) as it is the primary tool used in this setup.
 
-2. Git.
+### Tools
+- Terraform (>= 1.9.x)
+- Git.
+
+### OIDC Provider
+
+Create IAM OIDC provider for AWS (see [GitHub documentation](https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services) for more information) from a CloudFormation stack using the `scripts/oicd_provider/template.yml` template.
+
+The OIDC Provider is deployed using CloudFormation rather than Terraform to resolve a fundamental bootstrapping problem. Since this project relies on GitHub Actions to deploy infrastructure via Terraform, it requires an existing AWS IAM OIDC identity provider to authenticate and assume the necessary IAM roles. However, without this provider already existing in AWS, GitHub Actions cannot authenticate to deploy any resources, including the OIDC provider itself. This creates a circular dependency where Terraform cannot run without the OIDC provider, but the OIDC provider cannot be created by Terraform. Manually creating the OIDC provider solves the problem, and CloudFormation is used to ensure this is done using IaC.
 
 ## Getting Started
 
@@ -26,4 +32,4 @@ This project uses Terraform to create and manage my own AWS Organization using G
 
 ### Deployment
 
-This project is deployed remotely using GitHub Actions and a [GitHub OIDC Provider for AWS](https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services) to generate temporary credentials.
+GitHub actions ensure all commits pushed to main trigger a `terraform apply`.
