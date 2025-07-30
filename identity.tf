@@ -2,18 +2,18 @@ data "aws_caller_identity" "current" {}
 
 data "aws_organizations_organization" "org" {}
 
-# data "aws_organizations_organizational_unit" "ou_security" {
-#   parent_id = data.aws_organizations_organization.org.roots[0].id
-#   name      = "Security"
-# }
+data "aws_organizations_organizational_unit" "ou_security" {
+  parent_id = data.aws_organizations_organization.org.roots[0].id
+  name      = "Security"
+}
 
-# data "aws_organizations_organizational_unit_child_accounts" "ou_security_accounts" {
-#   parent_id = data.aws_organizations_organizational_unit.ou_security.id
-# }
+data "aws_organizations_organizational_unit_child_accounts" "ou_security_accounts" {
+  parent_id = data.aws_organizations_organizational_unit.ou_security.id
+}
 
 locals {
-  management_account_id = data.aws_caller_identity.current.account_id
-  # log_archive_account_id = [for n in data.aws_organizations_organizational_unit_child_accounts.ou_security_accounts.accounts : n if n.name == "Log-Archive"][0].id
+  management_account_id   = data.aws_caller_identity.current.account_id
+  ou_security_account_ids = [for n in data.aws_organizations_organizational_unit_child_accounts.ou_security_accounts.accounts : n.id if n.status == "ACTIVE"]
 }
 
 module "aws-iam-identity-center" {
@@ -46,10 +46,10 @@ module "aws-iam-identity-center" {
       principal_type  = "GROUP"
       principal_idp   = "INTERNAL" // type of Identity Provider you are using. Valid values are "INTERNAL" (using Identity Store) or "EXTERNAL" (using external IdP such as EntraID, Okta, Google, etc.)
       permission_sets = ["AdministratorAccess", "ViewOnlyAccess"]
-      account_ids = [
-        local.management_account_id,
-        "262194309215",
-      ]
+      account_ids = setunion(
+        [local.management_account_id],
+        local.ou_security_account_ids
+      )
     },
   }
 }
