@@ -12,10 +12,10 @@ This project uses Terraform to create and manage my own AWS Organization using G
 
 ### Installation
 1. Clone this repository:
-    ```bash
-    git clone https://github.com/yourusername/aws-organization-infra.git
-    cd aws-organization-infra
-    ```
+   ```bash
+   git clone https://github.com/guillaume-gc/gc-aws-organization;
+   cd gc-aws-organization
+   ```
 2. Make sure you have valid AWS credentials.
 
 3. Initialize Terraform:
