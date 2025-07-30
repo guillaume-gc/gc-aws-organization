@@ -18,6 +18,7 @@ locals {
 
 module "aws-iam-identity-center" {
   source = "aws-ia/iam-identity-center/aws"
+  depends_on = [module.organization_root]
 
   sso_groups = {
     Admin : {
