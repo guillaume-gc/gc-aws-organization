@@ -48,7 +48,7 @@ module "aws-iam-identity-center" {
       permission_sets = ["AdministratorAccess", "ViewOnlyAccess"]
       account_ids = [
         local.management_account_id,
-        "055449818624",
+        "262194309215",
       ]
     },
   }
