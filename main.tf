@@ -11,7 +11,8 @@ resource "aws_organizations_organization" "organization" {
 }
 
 module "organization_root" {
-  source = "./modules/organization/root"
+  source           = "./modules/organization/root"
+  resources_prefix = var.resources_prefix
 }
 
 module "global_budget" {

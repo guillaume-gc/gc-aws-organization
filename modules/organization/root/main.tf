@@ -3,5 +3,6 @@ module "infrastructure_ou" {
 }
 
 module "security_ou" {
-  source = "../ou/security"
+  source           = "../ou/security"
+  resources_prefix = var.resources_prefix
 }
