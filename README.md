@@ -4,6 +4,12 @@ This personal project uses Terraform to create and manage my own AWS Organizatio
 
 **Keep in mind that while project was made as generic as possible, it is still only used for my AWS Organization. It may not work in another environment.**
 
+## FAQ
+
+### Why not using AWS Control Tower?
+
+AWS Control Tower has not been used to reduce the cost of managing this organization, I also wanted to experiment with an AWS Organization purely managed with Terraform.
+
 ## Prerequisites
 
 ### Tools
@@ -38,31 +44,33 @@ The GitHub Actions pipeline requires the following repository variables to be co
 
 ## Getting Started
 
-### Deploy locally
-
-Please note it is not advised to deploy resources locally in a production environment.
+### Installation.
 
 1. Clone this repository:
    ```bash
    git clone https://github.com/guillaume-gc/gc-aws-organization
    ```
 
-2. Make sure you have valid AWS credentials.
+### Deploy locally
 
-3. Initialize Terraform:
+Please note it is not advised to deploy resources locally in a production environment.
+
+1. Make sure you have valid AWS credentials.
+
+2. Initialize Terraform:
     ```bash
-    terraform init -backend-config='key="$(git rev-parse --abbrev-ref HEAD).tfvars" region="[[YOUR REGION]]" bucket="[[YOUR BUCKET]]"'
+    terraform init -backend-config='key="main.tfstate" region="[[YOUR REGION]]" bucket="[[YOUR BUCKET]]"'
     ```
-    (`git rev-parse --abbrev-ref HEAD` returns the checked-in Git branch name.)
 
-4. Deploy resources (assuming there is a `tfvars` file with variables):
+3. Deploy resources (assuming there is a `tfvars` file with variables):
     ```bash
     terraform deploy
     ```
-   (`git rev-parse --abbrev-ref HEAD` returns the checked-in Git branch name.)
 
 ### CICD Deployment
 
-GitHub actions ensure all commits pushed to the main branch trigger a `terraform apply`
+GitHub actions ensure all commits pushed to the main branch trigger a `terraform apply`.
+
+Make sure the code is correctly formated using `terraform fmt -recursive`, otherwise the CICD will fail.
 
 For now, feature branch deployment is not implemented.

@@ -30,7 +30,7 @@ jobs:
         run: ls ./ -a
 
       - name: Terraform Init
-        run: terraform init -no-color -backend-config='key="main.tfvars" region="${{ vars.CICD_AWS_REGION }}" region="${{ vars.CICD_TERRAFORM_STATE_BUCKET }}"'
+        run: terraform init -no-color -backend-config='key="main.tfstate" region="${{ vars.CICD_AWS_REGION }}" region="${{ vars.CICD_TERRAFORM_STATE_BUCKET }}"'
 
       - name: Terraform Format Check
         run: terraform fmt -no-color -check -recursive
