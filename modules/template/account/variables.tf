@@ -11,3 +11,8 @@ variable "name" {
     error_message = "The name variable can contain only alphanumeric characters, and it cannot be empty."
   }
 }
+
+variable "service_name" {
+  description = "Name of the service managing resources."
+  type        = string
+}

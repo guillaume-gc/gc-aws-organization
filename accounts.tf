@@ -1,7 +1,7 @@
 module "log_archive_account" {
   source = "./modules/template/account"
 
-  name      = "Log-Archive"
+  name      = "LogArchive"
   parent_id = aws_organizations_organizational_unit.security.id
 }
 
@@ -21,7 +21,7 @@ module "log_archive_factory" {
 module "security_tooling_account" {
   source = "./modules/template/account"
 
-  name      = "Security-Tooling"
+  name      = "SecurityTooling"
   parent_id = aws_organizations_organizational_unit.security.id
 }
 
