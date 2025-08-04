@@ -6,13 +6,13 @@ resource "random_id" "email_seed" {
   byte_length = 4
 }
 
-resource "aws_organizations_account" "default_account" {
+resource "aws_organizations_account" "account" {
   parent_id = var.parent_id
 
   name  = var.name
-  email = "gc.org.acc+${lower(var.name)}-${random_id.email_seed.hex}@pm.me"
+  email = "gc.org.acc+${var.name}-${random_id.email_seed.hex}@pm.me"
 
-  role_name = "${lower(var.name)}-root-role"
+  role_name = "${lower(var.name)}Root"
 
   close_on_deletion = true
 

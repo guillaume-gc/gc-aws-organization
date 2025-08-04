@@ -5,7 +5,7 @@ provider "aws" {
   default_tags {
     tags = {
       GitBranch = var.git_branch_name
-      Service   = var.resources_prefix
+      Service   = var.service_name
       ManagedBy = "Terraform"
     }
   }
