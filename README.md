@@ -44,33 +44,35 @@ The GitHub Actions pipeline requires the following repository variables to be co
 
 ## Getting Started
 
-### Installation.
+### Installation
 
 1. Clone this repository:
    ```bash
    git clone https://github.com/guillaume-gc/gc-aws-organization
    ```
 
-### Deploy locally
+### Deployment
+
+#### CICD
+
+GitHub actions ensure all commits pushed to the main branch trigger a `terraform apply`.
+
+Make sure the code is correctly formated using `terraform fmt -recursive`, otherwise the pipeline will fail.
+
+For now, feature branch deployment is not implemented.
+
+#### Locally
 
 Please note it is not advised to deploy resources locally in a production environment.
 
 1. Make sure you have valid AWS credentials.
 
-2. Initialize Terraform:
+2. Initialize Terraform (assuming there is a `.tfbackend` file with variables, see `.github/workflows/deploy.yml` for variables list):
     ```bash
-    terraform init -backend-config='key="main.tfstate" region="[[YOUR REGION]]" bucket="[[YOUR BUCKET]]"'
+    terraform init
     ```
 
-3. Deploy resources (assuming there is a `tfvars` file with variables):
+3. Deploy resources (assuming there is a `.tfvars` file with variables):
     ```bash
     terraform deploy
     ```
-
-### CICD Deployment
-
-GitHub actions ensure all commits pushed to the main branch trigger a `terraform apply`.
-
-Make sure the code is correctly formated using `terraform fmt -recursive`, otherwise the CICD will fail.
-
-For now, feature branch deployment is not implemented.

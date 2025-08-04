@@ -12,7 +12,7 @@ jobs:
       contents: read
 
     steps:
-      - name: Git checkout
+      - name: Git Checkout
         uses: actions/checkout@v4
 
       - name: Set up Terraform
@@ -20,20 +20,27 @@ jobs:
         with:
           terraform_version: ${{ vars.CICD_TERRAFORM_VERSION }}
 
-      - name: Create temporary AWS credentials
+      - name: Create Temporary AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.CICD_IAM_ROLE }}
           aws-region: ${{ vars.CICD_AWS_REGION }}
 
-      - name: Project repository log
+      - name: Display Project Repository
         run: ls ./ -a
 
       - name: Terraform Init
-        run: terraform init -no-color -backend-config='key="main.tfstate" region="${{ vars.CICD_AWS_REGION }}" region="${{ vars.CICD_TERRAFORM_STATE_BUCKET }}"'
+        run: terraform init -no-color \ 
+          -backend-config='key=main.tfstate'
+          -backend-config="region=${{ vars.CICD_AWS_REGION }}'
+          -backend-config="bucket=${{ vars.CICD_TERRAFORM_STATE_BUCKET }}'
 
       - name: Terraform Format Check
         run: terraform fmt -no-color -check -recursive
 
-      - name: Terraform Apply -var='git_branch_name="main" aws_default_region="${{ vars.CICD_AWS_REGION }}" service_name="${{ vars.CICD_RESOURCE_PREFIX }}" notification_emails=["${{ vars.CICD_NOTIFICATION_EMAIL }}"]'
-        run: terraform apply -no-color -auto-approve
+      - name: Terraform Apply
+        run: terraform apply -no-color -auto-approve \
+          -var='git_branch_name=main'
+          -var='aws_default_region=${{ vars.CICD_AWS_REGION }}'
+          -var='service_name=${{ vars.CICD_RESOURCE_PREFIX }}'
+          -var='notification_emails=["${{ vars.CICD_NOTIFICATION_EMAIL }}"]'
