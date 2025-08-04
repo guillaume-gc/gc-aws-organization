@@ -31,8 +31,8 @@ jobs:
 
       - name: Terraform Init
         run: terraform init -no-color \ 
-          -backend-config='key=main.tfstate'
-          -backend-config='region=${{ vars.CICD_AWS_REGION }}'
+          -backend-config='key=main.tfstate' \
+          -backend-config='region=${{ vars.CICD_AWS_REGION }}' \
           -backend-config='bucket=${{ vars.CICD_TERRAFORM_STATE_BUCKET }}'
 
       - name: Terraform Format Check
