@@ -2,13 +2,13 @@
 
 This personal project uses Terraform to create and manage my own AWS Organization using GitHub Actions. It simplifies the process of setting up and managing my AWS accounts, organizational units (OUs), service control policies (SCPs), and other related resources.
 
-**Keep in mind that while project was made as generic as possible, it is still only used for my AWS Organization. It may not work in another environment.**
+**Keep in mind that while the project was made as generic as possible, it is still only used for my AWS Organization. It may not work in another environment.**
 
 ## FAQ
 
-### Why not using AWS Control Tower?
+### Why is AWS Control Tower not used?
 
-AWS Control Tower has not been used to reduce the cost of managing this organization, I also wanted to experiment with an AWS Organization purely managed with Terraform.
+AWS Control Tower has not been used to reduce operating cost, I also wanted to experiment with an AWS Organization purely managed with Terraform.
 
 ## Prerequisites
 
@@ -67,7 +67,7 @@ Please note it is not advised to deploy resources locally in a production enviro
 
 1. Make sure you have valid AWS credentials.
 
-2. Initialize Terraform (assuming there is a `.tfbackend` file with variables, see `.github/workflows/deploy.yml` for variables list):
+2. Initialize Terraform (assuming there is a `.tfbackend` file with variables, see `.github/workflows/deploy.yml` for a variable list):
     ```bash
     terraform init
     ```
