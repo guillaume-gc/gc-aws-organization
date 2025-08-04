@@ -12,7 +12,7 @@ resource "aws_organizations_account" "account" {
   name  = var.name
   email = "gc.org.acc+${var.name}-${random_id.email_seed.hex}@pm.me"
 
-  role_name = "${service_name}-${var.name}-Root"
+  role_name = "${service_name}_${var.name}_Root"
 
   close_on_deletion = true
 
