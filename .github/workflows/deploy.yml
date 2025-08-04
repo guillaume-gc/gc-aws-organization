@@ -30,17 +30,19 @@ jobs:
         run: ls ./ -a
 
       - name: Terraform Init
-        run: terraform init -no-color \ 
-          -backend-config='key=main.tfstate' \
-          -backend-config='region=${{ vars.CICD_AWS_REGION }}' \
-          -backend-config='bucket=${{ vars.CICD_TERRAFORM_STATE_BUCKET }}'
+        run: |
+          terraform init -no-color \ 
+            -backend-config='key=main.tfstate' \
+            -backend-config='region=${{ vars.CICD_AWS_REGION }}' \
+            -backend-config='bucket=${{ vars.CICD_TERRAFORM_STATE_BUCKET }}'
 
       - name: Terraform Format Check
         run: terraform fmt -no-color -check -recursive
 
       - name: Terraform Apply
-        run: terraform apply -no-color -auto-approve \
-          -var='git_branch_name=main' \
-          -var='aws_default_region=${{ vars.CICD_AWS_REGION }}' \
-          -var='service_name=${{ vars.CICD_RESOURCE_PREFIX }}' \
-          -var='notification_emails=["${{ vars.CICD_NOTIFICATION_EMAIL }}"]'
+        run: |
+          terraform apply -no-color -auto-approve \
+            -var='git_branch_name=main' \
+            -var='aws_default_region=${{ vars.CICD_AWS_REGION }}' \
+            -var='service_name=${{ vars.CICD_RESOURCE_PREFIX }}' \
+            -var='notification_emails=["${{ vars.CICD_NOTIFICATION_EMAIL }}"]'
