@@ -3,7 +3,7 @@ provider "aws" {
   alias  = "log_archive"
 
   assume_role {
-    role_arn    = "arn:aws:iam::262194309215:role/log-archive-root-role"
+    role_arn    = "arn:aws:iam::${var.log_archive_account_id}:role/${var.log_archive_account_role_name}"
     external_id = "managemenent-log-${var.log_archive_account_id}-${var.log_archive_account_role_name}"
   }
 
