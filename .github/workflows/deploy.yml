@@ -36,4 +36,4 @@ jobs:
         run: terraform fmt -no-color -check -recursive
 
       - name: Terraform Apply
-        run: terraform apply -no-color -auto-approve -var='git_branch_name=main' -var='aws_default_region=${{ vars.CICD_AWS_REGION }}' -var='service_name=${{ vars.CICD_RESOURCE_PREFIX }}' -var='notification_emails=["${{ vars.CICD_NOTIFICATION_EMAIL }}"]'
+        run: terraform apply -no-color -auto-approve -var='git_branch_name=main' -var='aws_default_region=${{ vars.CICD_AWS_REGION }}' -var='service_name=${{ vars.CICD_SERVICE_NAME }}' -var='notification_emails=["${{ vars.CICD_NOTIFICATION_EMAIL }}"]'
