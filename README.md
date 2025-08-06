@@ -13,14 +13,14 @@ AWS Control Tower has not been used to reduce operating cost, I also wanted to e
 ## Prerequisites
 
 ### Tools
-- Terraform (>= 1.12.x)
-- Git.
+- Terraform (>= 1.12)
+- Git
 
 ### OIDC Provider
 
 Create IAM OIDC provider for AWS (see [GitHub documentation](https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services) for more information) from a CloudFormation stack using the `scripts/oicd_provider/template.yml` template.
 
-The OIDC Provider is deployed using CloudFormation instead of Terraform to resolve a bootstrapping issue. GitHub Actions requires the OIDC provider to authenticate with AWS, but Terraform cannot create the provider without first being authenticated. CloudFormation breaks this circular dependency while maintaining infrastructure as code practices.
+The OIDC Provider is deployed using CloudFormation instead of Terraform to resolve a bootstrapping issue. GitHub Actions requires the OIDC provider to authenticate with AWS, but Terraform cannot create the OIDC provider without first being authenticated. CloudFormation breaks this circular dependency while maintaining infrastructure as code practices.
 
 ### Enable IAM Identity Center
 

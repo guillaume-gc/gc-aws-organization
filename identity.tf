@@ -7,7 +7,7 @@ module "aws-iam-identity-center" {
   source = "aws-ia/iam-identity-center/aws"
 
   sso_groups = {
-    Admin : {
+    Admin = {
       group_name        = "Admin"
       group_description = "Admin IAM Identity Center Group."
     }
@@ -26,8 +26,9 @@ module "aws-iam-identity-center" {
       aws_managed_policies = ["arn:aws:iam::aws:policy/job-function/ViewOnlyAccess"]
     }
   }
+
   account_assignments = {
-    Admin : {
+    Admin = {
       principal_name  = "Admin"
       principal_type  = "GROUP"
       principal_idp   = "INTERNAL" // type of Identity Provider you are using. Valid values are "INTERNAL" (using Identity Store) or "EXTERNAL" (using external IdP such as EntraID, Okta, Google, etc.)
@@ -39,5 +40,4 @@ module "aws-iam-identity-center" {
       ]
     },
   }
-
 }
