@@ -5,7 +5,8 @@ resource "aws_resourceexplorer2_index" "global_aggregator" {
 resource "aws_resourceexplorer2_view" "organizational" {
   name = "OrganizationalView"
 
-  scope = aws_organizations_organization.organization.arn
+  scope        = aws_organizations_organization.organization.arn
+  default_view = true
 
   depends_on = [aws_resourceexplorer2_index.global_aggregator]
 }
