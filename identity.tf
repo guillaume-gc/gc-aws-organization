@@ -26,4 +26,17 @@ module "aws-iam-identity-center" {
       aws_managed_policies = ["arn:aws:iam::aws:policy/job-function/ViewOnlyAccess"]
     }
   }
+  account_assignments = {
+    Admin : {
+      principal_name  = "Admin"
+      principal_type  = "GROUP"
+      principal_idp   = "INTERNAL" // type of Identity Provider you are using. Valid values are "INTERNAL" (using Identity Store) or "EXTERNAL" (using external IdP such as EntraID, Okta, Google, etc.)
+      permission_sets = ["AdministratorAccess", "ViewOnlyAccess"]
+      account_ids = [
+        module.log_archive_account.account_id,
+        module.security_tooling_account.account_id,
+      ]
+    },
+  }
+
 }
