@@ -4,12 +4,6 @@ This personal project uses Terraform to create and manage my own AWS Organizatio
 
 **Keep in mind that while the project was made as generic as possible, it is still only used for my AWS Organization. It may not work in another environment.**
 
-## FAQ
-
-### Why is AWS Control Tower not used?
-
-AWS Control Tower has not been used to reduce operating cost, I also wanted to experiment with an AWS Organization purely managed with Terraform.
-
 ## Prerequisites
 
 ### Tools
@@ -76,3 +70,9 @@ Please note it is not advised to deploy resources locally in a production enviro
     ```bash
     terraform deploy
     ```
+
+### Configure AWS Control Tower
+
+AWS Control Tower also needs to be manually set up, but as opposed to IAM Identity, this needs to be done after the deployment.
+
+Make sure to use the correct home AWS region.
