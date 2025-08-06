@@ -3,6 +3,7 @@ resource "aws_organizations_organization" "organization" {
     "cloudtrail.amazonaws.com",
     "account.amazonaws.com",
     "ram.amazonaws.com",
+    "resource-explorer-2.amazonaws.com",
     "sso.amazonaws.com", // IAM Identity Center.
   ]
 
