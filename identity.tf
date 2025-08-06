@@ -33,6 +33,7 @@ module "aws-iam-identity-center" {
       principal_idp   = "INTERNAL" // type of Identity Provider you are using. Valid values are "INTERNAL" (using Identity Store) or "EXTERNAL" (using external IdP such as EntraID, Okta, Google, etc.)
       permission_sets = ["AdministratorAccess", "ViewOnlyAccess"]
       account_ids = [
+        data.aws_caller_identity.current.account_id,
         module.log_archive_account.account_id,
         module.security_tooling_account.account_id,
       ]
