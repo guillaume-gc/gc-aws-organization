@@ -6,6 +6,14 @@ module "log_archive_account" {
   service_name = var.service_name
 }
 
+module "audit_account" {
+  source = "./modules/template/account"
+
+  name         = "Audit"
+  parent_id    = aws_organizations_organizational_unit.security.id
+  service_name = var.service_name
+}
+
 module "security_tooling_account" {
   source = "./modules/template/account"
 
