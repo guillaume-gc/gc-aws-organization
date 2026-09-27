@@ -1,5 +1,6 @@
 module "aws-iam-identity-center" {
-  source = "aws-ia/iam-identity-center/aws"
+  source  = "aws-ia/iam-identity-center/aws"
+  version = "1.0.3"
 
   sso_groups = {
     Admin = {
