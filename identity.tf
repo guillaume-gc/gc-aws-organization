@@ -31,9 +31,6 @@ module "aws-iam-identity-center" {
       permission_sets = ["AdministratorAccess", "ViewOnlyAccess"]
       account_ids = [
         data.aws_caller_identity.current.account_id,
-        module.log_archive_account.account_id,
-        module.audit_account.account_id,
-        module.security_tooling_account.account_id,
       ]
     },
   }
