@@ -1,8 +1,3 @@
-module "iam-identity-center" {
-  source  = "aws-ia/iam-identity-center/aws"
-  version = "1.0.2"
-}
-
 module "aws-iam-identity-center" {
   source = "aws-ia/iam-identity-center/aws"
 
