@@ -27,6 +27,7 @@ terraform plan -var-file=deploy.tfvars
 
 - Every push to `main` runs `.github/workflows/on_push_main.yml` → `deploy.yml`, which runs `terraform apply -auto-approve` using OIDC credentials. There is no plan or review step.
 - Repository variables: `CICD_AWS_REGION`, `CICD_IAM_ROLE`, `CICD_TERRAFORM_VERSION`, `CICD_TERRAFORM_STATE_BUCKET`, `CICD_SERVICE_NAME`, `CICD_NOTIFICATION_EMAIL`.
+- Never obtain or use credentials (AWS profiles, SSO sessions, environment variables, secrets) without asking the user first. This applies to read-only commands too, such as `terraform plan` or `aws sts get-caller-identity`.
 - Do not run `terraform apply` locally unless the user explicitly asks. This is the live organization, and account deletion closes accounts.
 
 ## Manual prerequisites (outside Terraform)
