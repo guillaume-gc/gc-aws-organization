@@ -68,11 +68,9 @@ Please note it is not advised to deploy resources locally in a production enviro
 
 3. Deploy resources (assuming there is a `.tfvars` file with variables):
     ```bash
-    terraform deploy
+    terraform apply
     ```
 
-### Configure AWS Control Tower
+### AWS Control Tower
 
-AWS Control Tower also needs to be manually set up, but as opposed to IAM Identity, this needs to be done after the deployment.
-
-Make sure to use the correct home AWS region.
+AWS Control Tower is not set up. Whether to use it is still an open question, see [ADR 0003](docs/adr/0003-multi-stage-orchestration.md).
