@@ -5,7 +5,6 @@ Terraform project that manages a personal AWS Organization (OUs, accounts, IAM I
 ## Layout
 
 - `organization.tf`: the organization, trusted service access, OUs (`Security`, `Infrastructure`).
-- `accounts.tf`: member accounts (built from `modules/template/account`) and the CloudTrail delegated admin.
 - `identity.tf`: IAM Identity Center groups, permission sets and account assignments (`aws-ia/iam-identity-center` module).
 - `budget.tf`, `resource_explorer.tf`: cost alerts and the organization-wide Resource Explorer.
 - `modules/template/account/`: one member account (generated email `gc.org.acc+<name>-<hex>@pm.me`, `close_on_deletion = true`).
