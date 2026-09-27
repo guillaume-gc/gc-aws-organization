@@ -28,7 +28,7 @@ terraform plan -var-file=deploy.tfvars
 - Every push to `main` runs `.github/workflows/on_push_main.yml` → `deploy.yml`, which runs `terraform apply -auto-approve` using OIDC credentials. There is no plan or review step.
 - Repository variables: `CICD_AWS_REGION`, `CICD_IAM_ROLE`, `CICD_TERRAFORM_VERSION`, `CICD_TERRAFORM_STATE_BUCKET`, `CICD_SERVICE_NAME`, `CICD_NOTIFICATION_EMAIL`.
 - Never obtain or use credentials (AWS profiles, SSO sessions, environment variables, secrets) without asking the user first. This applies to read-only commands too, such as `terraform plan` or `aws sts get-caller-identity`.
-- Do not run `terraform apply` locally unless the user explicitly asks. This is the live organization, and account deletion closes accounts.
+- Do not run `terraform apply` or run AWS commands (especially write or delete operations) locally unless the user explicitly asks. This is the live organization, and account deletion closes accounts.
 
 ## Manual prerequisites (outside Terraform)
 
@@ -40,6 +40,7 @@ terraform plan -var-file=deploy.tfvars
 - Commits must follow [Conventional Commits](https://www.conventionalcommits.org/): `type(scope): message`. Types seen so far: `feat`, `fix`, `chore`, `refact`. Scopes are areas such as `account`, `identity`, `explorer`, `cicd`, `all`.
 - Each commit has a single intention. Don't mix unrelated changes (for example a fix and a refactor, or two unrelated fixes). Split them into separate commits.
 - Never add a `Co-Authored-By: Claude` trailer (or any other Claude attribution) to commit messages.
+- Never add a body (long description). Commit body should be enough.
 - Resource names are prefixed with `var.service_name` where AWS requires them to be unique.
 - Account names must be alphanumeric (validated in the account module).
 - Record significant architecture decisions as a new ADR in `docs/adr/` (`NNNN-title.md`: Status / Date / Context / Decision / Consequences).
