@@ -38,6 +38,7 @@ terraform plan -var-file=deploy.tfvars
 
 - Commits must follow [Conventional Commits](https://www.conventionalcommits.org/): `type(scope): message`. Types seen so far: `feat`, `fix`, `chore`, `refact`. Scopes are areas such as `account`, `identity`, `explorer`, `cicd`, `all`.
 - Each commit has a single intention. Don't mix unrelated changes (for example a fix and a refactor, or two unrelated fixes). Split them into separate commits.
+- Never add a `Co-Authored-By: Claude` trailer (or any other Claude attribution) to commit messages.
 - Resource names are prefixed with `var.service_name` where AWS requires them to be unique.
 - Account names must be alphanumeric (validated in the account module).
 - Record significant architecture decisions as a new ADR in `docs/adr/` (`NNNN-title.md`: Status / Date / Context / Decision / Consequences).
