@@ -102,44 +102,82 @@ To be completed once a decision is made.
 - Stage 1 stays at the repository root, so its state needs no migration. Terraform only loads the `.tf` files of the directory it runs in, so the root apply ignores `baselines/`.
 - Each baseline directory is named exactly after its account name (as passed to `modules/template/account`). The directory name is the key used to look up the account in the stage 1 outputs, the backend key and the pipeline matrix entry.
 
+### Prerequisites
+
+- ADR 0004 (mise) is implemented first. The pipeline and local commands below use its tasks.
+- State locking and concurrency are added first, independently of this ADR, since they are already missing with a single state:
+  - Every stage's backend uses S3 native locking (`use_lockfile = true`). The deploy role needs `s3:PutObject` and `s3:DeleteObject` on the `.tflock` keys.
+  - `on_push_main.yml` gets a `concurrency` group (without `cancel-in-progress`), so two pushes never apply at the same time.
+
 ### Stage 1 changes
 
 - Declare member accounts in one map keyed by account name, whose values describe the account (for example `{ parent_ou_id = ... }`), and create them with `for_each` over `modules/template/account`.
 - Add an `accounts` output: account name → `{ id, role_name }`.
+- In `identity.tf`, add the member account IDs from that map to the `Admin` group assignment, so the new accounts are reachable through IAM Identity Center.
 
 ### Stage 2 structure (per account)
 
-- An empty `backend "s3" {}`, configured at init with the stage's key.
-- `terraform_remote_state` on `main.tfstate` to read the `accounts` output.
-- Two providers: the management account (pipeline credentials) and the member account (`assume_role` on `arn:aws:iam::<id>:role/<role_name>`).
-- `LogArchive` creates the CloudTrail bucket in the member account, then the organization trail in the management account.
+- Files: `versions.tf` (required Terraform and provider versions, empty `backend "s3" {}`), `providers.tf`, `variables.tf`, the resources, and a committed `.terraform.lock.hcl`.
+- Inputs: `aws_default_region`, `service_name`, `git_branch_name` and `state_bucket`. In CI they come from the repository variables (`CICD_TERRAFORM_STATE_BUCKET` for `state_bucket`). Locally they come from the settings defined in ADR 0004.
+- `terraform_remote_state` on `main.tfstate` (using `state_bucket` and `aws_default_region`) to read the `accounts` output.
+- Two providers: the management account (pipeline credentials) and the member account (`assume_role` on `arn:aws:iam::<id>:role/<role_name>`). Both set the same `default_tags` as stage 1 (`GitBranch`, `Service`, `ManagedBy`).
+
+### LogArchive baseline
+
+- In the member account: an S3 bucket named with the `var.service_name` prefix, with public access blocked, a bucket policy allowing CloudTrail to write the organization's logs (`AWSLogs/<organization id>/*`, restricted by `aws:SourceArn` to the trail), and a lifecycle rule that expires logs after a retention period to decide (for running costs).
+- Decide whether the bucket uses `force_destroy`. Without it, removing the baseline fails until the bucket is emptied by hand.
+- In the management account: a multi-region organization trail (`is_organization_trail = true`) writing to the bucket, depending on the bucket policy. CloudTrail trusted access is already enabled in `organization.tf`. The first copy of management events is free, so the cost is S3 storage.
 
 ### Pipeline
 
-- Move the shared steps (checkout, Terraform setup, credentials, init, fmt check, apply) into a composite action that takes the working directory and the backend key.
+- Move the shared steps (checkout, mise and Terraform setup, credentials, init, apply) into a composite action that takes the working directory and the backend key.
+- `terraform fmt -check -recursive` covers every stage, so it runs once, in the `organization` job. `terraform validate` runs in every job.
 - `deploy.yml` gets two jobs: `organization`, then `baselines` with `needs: organization`, a static matrix of baseline directories and `fail-fast: false`.
-- Before applying a baseline, a script retries assuming the account role (for example every 30 seconds for up to 10 minutes) to wait for new accounts.
+- Before applying a baseline, a script waits for the account: it finds the account ID by name with `aws organizations list-accounts` (management credentials, no stage 1 init needed), then retries `aws sts assume-role` on the account role (for example every 30 seconds for up to 10 minutes). The AWS CLI is preinstalled on GitHub runners.
 
 ### Manual prerequisites (outside Terraform, see ADR 0001)
 
 - Allow the deploy role `sts:AssumeRole` on `arn:aws:iam::*:role/<service_name>_*_Root`.
-- Extend the deploy role's state bucket permissions to `baselines/*`.
-- Add these to the list of manual prerequisites in `CLAUDE.md`.
+- Extend the deploy role's state bucket permissions to `baselines/*`, including the `.tflock` keys.
+- Make sure the deploy role can call `organizations:ListAccounts`.
+- Add these to the manual prerequisites in `CLAUDE.md` and the README.
 
-### Account removal
+### Documentation and runbooks
 
-Deleting a baseline directory destroys nothing: the pipeline stops running it and its state is left behind. Removing an account therefore follows a runbook (`docs/runbooks/remove-account.md`, written as part of this implementation):
+- `CLAUDE.md`: layout (`baselines/`, `docs/runbooks/`), commands per stage, and the two-job deployment.
+- README: prerequisites and layout.
+- `docs/runbooks/add-account.md`:
+  1. Add the account to the stage 1 map.
+  2. Create `baselines/<AccountName>/`, starting from an existing baseline.
+  3. Add the directory to the pipeline matrix.
+  4. Push, then check the result (see Verification).
+- `docs/runbooks/remove-account.md`. Deleting a baseline directory destroys nothing: the pipeline stops running it and its state is left behind. So:
+  1. Check that the data the baseline holds (such as logs) is no longer needed. For LogArchive, removing the baseline also deletes the organization trail, which stops logging for the whole organization.
+  2. Empty the bucket if it does not use `force_destroy`.
+  3. Remove all resources from the baseline directory (keep the backend, providers and variables) and push, so the apply destroys them. Terraform deletes the trail before the bucket, since the trail depends on it.
+  4. Remove the account from the pipeline matrix and from the stage 1 map, delete the baseline directory, and push. The account is closed (`close_on_deletion = true`).
+  5. Delete the stage's state file from the state bucket.
 
-1. Empty the baseline directory of resources (keep the backend and providers) and push, so the apply destroys them. Check that the logs it holds are no longer needed first.
-2. Remove the account from the stage 2 matrix and from the stage 1 map, delete the baseline directory, and push. The account is closed (`close_on_deletion = true`).
-3. Delete the stage's state file from the state bucket.
+### Verification
+
+- Before each push: `fmt` and `validate` on every changed stage, then `plan` on each stage locally. Running `plan` needs AWS credentials, which are only used after the user agrees (see `CLAUDE.md`). A stage 2 `plan` cannot run before its account exists, so the first time only `validate` applies to it.
+- After the first run:
+  - The account exists in the right OU.
+  - The `baselines` job succeeded.
+  - The trail is logging (`aws cloudtrail get-trail-status`) and log files reach the bucket.
+  - The account is reachable through IAM Identity Center.
 
 ### Commits
 
-1. `feat(cicd)`: composite action and the two-job `deploy.yml`, stage 1 only (no behavior change).
-2. `feat(account)`: accounts with `for_each` and the `accounts` output.
-3. `feat(baseline)`: `baselines/LogArchive` (bucket and trail), the wait script and the matrix entry.
-4. `docs(runbook)`: the account removal runbook.
-5. `docs(adr)`: accept this ADR and complete its consequences.
+1. `fix(cicd)`: state locking and the `concurrency` group. Independent of this ADR, can be done now.
+2. The ADR 0004 commits.
+3. `feat(cicd)`: composite action and the two-job `deploy.yml`, stage 1 only (no behavior change).
+4. `feat(account)`: accounts with `for_each` and the `accounts` output. Pushing it creates the accounts.
+5. `feat(identity)`: assign the `Admin` group to the member accounts.
+6. `feat(baseline)`: `baselines/LogArchive` (bucket and trail), the wait script and the matrix entry. Pushing it creates the bucket and the trail.
+7. `docs(runbook)`: the add and remove account runbooks.
+8. `docs(claude)`: `CLAUDE.md` layout, commands, deployment and prerequisites.
+9. `docs(readme)`: README prerequisites and layout.
+10. `docs(adr)`: accept this ADR and complete its consequences.
 
-The manual prerequisites must be in place before commit 3 is pushed. Commits 2 and 3 create real accounts once pushed.
+The manual prerequisites must be in place before commit 6 is pushed.
