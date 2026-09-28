@@ -42,4 +42,4 @@ terraform plan -var-file=deploy.tfvars
 - Never add a body (long description). Commit body should be enough.
 - Resource names are prefixed with `var.service_name` where AWS requires them to be unique.
 - Account names must be alphanumeric (validated in the account module).
-- Record significant architecture decisions as a new ADR in `docs/adr/` (`NNNN-title.md`: Status / Date / Context / Decision / Consequences).
+- Record significant architecture decisions as a new ADR in `docs/adr/` (`NNNN-title.md`: Status / Date / Context / Options considered (optional) / Decision / Consequences / Implementation plan (optional)). Keep the implementation plan to steps, deliverables and commit order, without code.
