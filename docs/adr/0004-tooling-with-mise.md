@@ -44,24 +44,46 @@ One `mise.toml` pins tool versions (Terraform) and defines tasks (init, plan, fm
 
 Use mise (Option A):
 
-- `mise.toml` (committed) pins the exact Terraform version and defines the tasks `fmt`, `init`, `validate` and `plan`. Tasks that act on a stage take the stage directory as an argument once ADR 0003 introduces stages.
-- `mise.local.toml` (gitignored) sets the local values that tasks need, such as the state bucket and region, as environment variables.
+- `mise.toml` (committed) pins the exact Terraform version and defines the tasks `fmt`, `init`, `validate` and `plan`. The pinned version starts as the current value of the `CICD_TERRAFORM_VERSION` repository variable, so CI keeps the same version. Tasks that act on a stage take the stage directory as an argument once ADR 0003 introduces stages.
+- `mise.local.toml` (gitignored) holds every local setting:
+  - the backend settings used by `init` (state bucket, region), as environment variables;
+  - the Terraform variables, as `TF_VAR_*` environment variables.
+  It replaces `deploy.tfvars`, so local settings live in one file. A committed `mise.local.toml.example` lists the expected entries with placeholder values.
 - There is no `apply` task. Applies only run in CI (see `CLAUDE.md`).
 - Tasks do not select AWS credentials (profiles, SSO). The user provides them explicitly.
-- CI installs Terraform with `jdx/mise-action` from `mise.toml`, and runs the same `init` and `fmt` tasks.
+- CI installs mise and Terraform with `jdx/mise-action`, with both the action and the mise version pinned. It sets the same environment variables as `mise.local.toml` from the repository variables, and runs the same `init`, `fmt` and `validate` tasks.
 
 ## Consequences
 
 - The Terraform version has a single source of truth, `mise.toml`. The `CICD_TERRAFORM_VERSION` repository variable is removed.
 - `required_version` in `versions.tf` stays as a lower bound for anyone running Terraform without mise.
-- Upgrading Terraform is a commit to `mise.toml`, reviewed and deployed like any other change.
+- Upgrading Terraform (or mise) is a commit, reviewed and deployed like any other change.
+- `deploy.tfvars` is no longer used. Terraform variables are passed the same way locally and in CI (`TF_VAR_*`).
 - Contributors (and Claude) must install mise to use the saved commands. Raw `terraform` commands still work.
 - Tasks are kept to single `terraform` commands, so they behave the same in the Windows and Linux shells.
 
 ## Implementation plan
 
-1. `chore(tooling)`: add `mise.toml` (Terraform version, tasks), add `mise.local.toml` to `.gitignore`.
-2. `feat(cicd)`: install Terraform with `jdx/mise-action` and use the tasks in `deploy.yml`. Remove `CICD_TERRAFORM_VERSION` from the repository variables afterwards.
-3. `docs(claude)`: replace the commands in `CLAUDE.md` with the mise tasks, and document `mise.local.toml`.
+### Deliverables
 
-If ADR 0003 Option A is implemented, its stages reuse these tasks with the stage directory as argument.
+- `mise.toml`: the Terraform version and the tasks.
+- `mise.local.toml.example`, and `mise.local.toml` added to `.gitignore`.
+- `deploy.yml`: `jdx/mise-action` (pinned) instead of `hashicorp/setup-terraform`, the environment variables from the repository variables, and the tasks instead of the raw `init`, `fmt` and `validate` commands. `apply` stays a raw command in the workflow.
+- `CLAUDE.md`: the commands replaced by the tasks, `mise.local.toml` instead of `deploy.tfvars`.
+- README: mise in the tools (install on Windows with winget or scoop), the setup of `mise.local.toml`, and `CICD_TERRAFORM_VERSION` removed from the repository variables table.
+
+### Verification
+
+- Read the current `CICD_TERRAFORM_VERSION` value to pin it. This reads the repository settings on GitHub, so it is done by the user or with their agreement.
+- Run each task locally in PowerShell and in Git Bash. `init` and `plan` need AWS credentials, which are only used after the user agrees (see `CLAUDE.md`). `plan` must show no changes compared with the current deployment.
+- After the push, check that the CI run uses the pinned Terraform version and succeeds.
+- Only then remove the `CICD_TERRAFORM_VERSION` repository variable (by hand, in GitHub) and the local `deploy.tfvars`.
+
+### Commits
+
+1. `chore(tooling)`: `mise.toml`, `mise.local.toml.example`, and `mise.local.toml` in `.gitignore`.
+2. `feat(cicd)`: install Terraform with `jdx/mise-action` and use the tasks and `TF_VAR_*` variables in `deploy.yml`.
+3. `docs(claude)`: the tasks and `mise.local.toml` in `CLAUDE.md`.
+4. `docs(readme)`: tools, local setup and repository variables in the README.
+
+If ADR 0003 Option A is implemented, it comes after this ADR and its stages reuse these tasks with the stage directory as argument.
