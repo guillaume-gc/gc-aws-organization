@@ -14,7 +14,9 @@ An attempt was made and then removed (see commit `203a39b`, "remove factory"). I
 3. **Destroying is fragile.** Removing an account and the provider that reaches into it in the same change leaves resources Terraform can no longer reach.
 4. **A provider declared inside a module** stops you from using `for_each`/`count`, so one generic "account + baseline" module cannot be reused per account.
 
-Needed baselines include, for example, the organization CloudTrail bucket in LogArchive and the organization trail. An organization trail can only be created from the management account or from a CloudTrail delegated administrator account. Creating it from the management account keeps it in stage 1 of a split and leaves only the bucket in LogArchive.
+In this ADR, an **account baseline** is the set of resources that one member account needs once it exists (for example, the CloudTrail log bucket in LogArchive). It is distinct from creating the account itself, which happens in the management account.
+
+Needed baselines include, for example, the organization CloudTrail bucket in LogArchive and the organization trail. An organization trail can only be created from the management account or from a CloudTrail delegated administrator account. The trail depends on the bucket, and the bucket depends on the LogArchive account, so the trail cannot be created in the same apply as the account either.
 
 Member accounts are reached through the role created by `aws_organizations_account` (`<service_name>_<name>_Root`), which the deploy role in the management account assumes.
 
@@ -24,8 +26,8 @@ Constraints: personal organization, keep running costs minimal, GitHub Actions a
 
 ### A. Separate states per stage, run in order by the pipeline
 
-- Stage 1 (`organization`) covers the organization, OUs, accounts, Identity Center, the delegated admins and the organization trail. It outputs account IDs and role names.
-- Stage 2 (`baselines/<account>`) is one root module per account (or one shared module used per account). Its provider assumes the account role, and it reads stage 1 outputs through `terraform_remote_state` or SSM parameters.
+- Stage 1 (`organization`) covers the organization, OUs, accounts, Identity Center and the delegated admins. It outputs account IDs and role names.
+- Stage 2 (`baselines/<AccountName>`) is one root module per account (or one shared module used per account). Its provider assumes the account role, and it reads stage 1 outputs through `terraform_remote_state` or SSM parameters. A stage can also declare a management account provider for resources that must live there but depend on the account's baseline, such as the organization trail in the LogArchive stage.
 - A GitHub Actions job dependency (`needs:`) enforces the order, with a matrix over accounts for stage 2.
 
 **Pros:** plain Terraform, no extra tools, no extra AWS cost. Provider settings are always known at plan time (fixes 1), and each baseline root module owns its provider (fixes 4).
@@ -80,8 +82,64 @@ The single state manages `aws_cloudformation_stack_set` resources with `permissi
 
 ## Decision
 
-Pending.
+Pending. Option A is recommended: it fits the cost and tooling constraints, and it can move to Option B later without changing the state split.
 
 ## Consequences
 
 To be completed once a decision is made.
+
+## Implementation plan (if Option A is chosen)
+
+### Layout
+
+```
+.                        # stage 1: organization (key main.tfstate, unchanged)
+└── baselines/
+    ├── LogArchive/      # stage 2: key baselines/LogArchive.tfstate
+    └── SecurityTooling/ # stage 2: key baselines/SecurityTooling.tfstate
+```
+
+- Stage 1 stays at the repository root, so its state needs no migration. Terraform only loads the `.tf` files of the directory it runs in, so the root apply ignores `baselines/`.
+- Each baseline directory is named exactly after its account name (as passed to `modules/template/account`). The directory name is the key used to look up the account in the stage 1 outputs, the backend key and the pipeline matrix entry.
+
+### Stage 1 changes
+
+- Declare member accounts in one map keyed by account name, whose values describe the account (for example `{ parent_ou_id = ... }`), and create them with `for_each` over `modules/template/account`.
+- Add an `accounts` output: account name → `{ id, role_name }`.
+
+### Stage 2 structure (per account)
+
+- An empty `backend "s3" {}`, configured at init with the stage's key.
+- `terraform_remote_state` on `main.tfstate` to read the `accounts` output.
+- Two providers: the management account (pipeline credentials) and the member account (`assume_role` on `arn:aws:iam::<id>:role/<role_name>`).
+- `LogArchive` creates the CloudTrail bucket in the member account, then the organization trail in the management account.
+
+### Pipeline
+
+- Move the shared steps (checkout, Terraform setup, credentials, init, fmt check, apply) into a composite action that takes the working directory and the backend key.
+- `deploy.yml` gets two jobs: `organization`, then `baselines` with `needs: organization`, a static matrix of baseline directories and `fail-fast: false`.
+- Before applying a baseline, a script retries assuming the account role (for example every 30 seconds for up to 10 minutes) to wait for new accounts.
+
+### Manual prerequisites (outside Terraform, see ADR 0001)
+
+- Allow the deploy role `sts:AssumeRole` on `arn:aws:iam::*:role/<service_name>_*_Root`.
+- Extend the deploy role's state bucket permissions to `baselines/*`.
+- Add these to the list of manual prerequisites in `CLAUDE.md`.
+
+### Account removal
+
+Deleting a baseline directory destroys nothing: the pipeline stops running it and its state is left behind. Removing an account therefore follows a runbook (`docs/runbooks/remove-account.md`, written as part of this implementation):
+
+1. Empty the baseline directory of resources (keep the backend and providers) and push, so the apply destroys them. Check that the logs it holds are no longer needed first.
+2. Remove the account from the stage 2 matrix and from the stage 1 map, delete the baseline directory, and push. The account is closed (`close_on_deletion = true`).
+3. Delete the stage's state file from the state bucket.
+
+### Commits
+
+1. `feat(cicd)`: composite action and the two-job `deploy.yml`, stage 1 only (no behavior change).
+2. `feat(account)`: accounts with `for_each` and the `accounts` output.
+3. `feat(baseline)`: `baselines/LogArchive` (bucket and trail), the wait script and the matrix entry.
+4. `docs(runbook)`: the account removal runbook.
+5. `docs(adr)`: accept this ADR and complete its consequences.
+
+The manual prerequisites must be in place before commit 3 is pushed. Commits 2 and 3 create real accounts once pushed.
