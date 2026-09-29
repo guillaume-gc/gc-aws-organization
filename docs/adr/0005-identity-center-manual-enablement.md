@@ -1,7 +1,7 @@
-# 2. Enable IAM Identity Center by hand and keep users out of Terraform
+# 5. Enable IAM Identity Center by hand and keep users out of Terraform
 
 - Status: Accepted
-- Date: 2025-07 (recorded retroactively on 2026-09-27)
+- Date: 2026-09-29
 
 ## Context
 

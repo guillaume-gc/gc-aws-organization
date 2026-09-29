@@ -1,7 +1,7 @@
-# 3. Orchestrate account creation and account baselines
+# 6. Orchestrate account creation and account baselines
 
 - Status: Proposed
-- Date: 2026-09-27
+- Date: 2026-09-29
 
 ## Context
 
@@ -104,7 +104,7 @@ To be completed once a decision is made.
 
 ### Prerequisites
 
-- ADR 0004 (mise) is implemented first. The pipeline and local commands below use its tasks.
+- ADR 0007 (mise) is implemented first. The pipeline and local commands below use its tasks.
 - State locking and concurrency are added first, independently of this ADR, since they are already missing with a single state:
   - Every stage's backend uses S3 native locking (`use_lockfile = true`). The deploy role needs `s3:PutObject` and `s3:DeleteObject` on the `.tflock` keys.
   - `on_push_main.yml` gets a `concurrency` group (without `cancel-in-progress`), so two pushes never apply at the same time.
@@ -118,7 +118,7 @@ To be completed once a decision is made.
 ### Stage 2 structure (per account)
 
 - Files: `versions.tf` (required Terraform and provider versions, empty `backend "s3" {}`), `providers.tf`, `variables.tf`, the resources, and a committed `.terraform.lock.hcl`.
-- Inputs: `aws_default_region`, `service_name`, `git_branch_name` and `state_bucket`. In CI they come from the repository variables (`CICD_TERRAFORM_STATE_BUCKET` for `state_bucket`). Locally they come from the settings defined in ADR 0004.
+- Inputs: `aws_default_region`, `service_name`, `git_branch_name` and `state_bucket`. In CI they come from the repository variables (`CICD_TERRAFORM_STATE_BUCKET` for `state_bucket`). Locally they come from the settings defined in ADR 0007.
 - `terraform_remote_state` on `main.tfstate` (using `state_bucket` and `aws_default_region`) to read the `accounts` output.
 - Two providers: the management account (pipeline credentials) and the member account (`assume_role` on `arn:aws:iam::<id>:role/<role_name>`). Both set the same `default_tags` as stage 1 (`GitBranch`, `Service`, `ManagedBy`).
 
@@ -135,7 +135,7 @@ To be completed once a decision is made.
 - `deploy.yml` gets two jobs: `organization`, then `baselines` with `needs: organization`, a static matrix of baseline directories and `fail-fast: false`.
 - Before applying a baseline, a script waits for the account: it finds the account ID by name with `aws organizations list-accounts` (management credentials, no stage 1 init needed), then retries `aws sts assume-role` on the account role (for example every 30 seconds for up to 10 minutes). The AWS CLI is preinstalled on GitHub runners.
 
-### Manual prerequisites (outside Terraform, see ADR 0001)
+### Manual prerequisites (outside Terraform, see ADR 0004)
 
 - Allow the deploy role `sts:AssumeRole` on `arn:aws:iam::*:role/<service_name>_*_Root`.
 - Extend the deploy role's state bucket permissions to `baselines/*`, including the `.tflock` keys.
@@ -170,7 +170,7 @@ To be completed once a decision is made.
 ### Commits
 
 1. `fix(cicd)`: state locking and the `concurrency` group. Independent of this ADR, can be done now.
-2. The ADR 0004 commits.
+2. The ADR 0007 commits.
 3. `feat(cicd)`: composite action and the two-job `deploy.yml`, stage 1 only (no behavior change).
 4. `feat(account)`: accounts with `for_each` and the `accounts` output. Pushing it creates the accounts.
 5. `feat(identity)`: assign the `Admin` group to the member accounts.

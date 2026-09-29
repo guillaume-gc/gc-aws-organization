@@ -1,11 +1,11 @@
-# 4. Pin tools and save commands with mise
+# 7. Pin tools and save commands with mise
 
 - Status: Accepted
-- Date: 2026-09-28
+- Date: 2026-09-29
 
 ## Context
 
-Running Terraform locally needs long commands that are only written down in `CLAUDE.md`, such as `terraform init` with three `-backend-config` flags. ADR 0003 (Option A) would multiply them: each stage has its own directory and backend key.
+Running Terraform locally needs long commands that are only written down in `CLAUDE.md`, such as `terraform init` with three `-backend-config` flags. ADR 0006 (Option A) would multiply them: each stage has its own directory and backend key.
 
 The Terraform version is defined in two places that can drift apart: the `CICD_TERRAFORM_VERSION` repository variable used by CI, and `required_version = ">= 1.12"` in `versions.tf`, which accepts any newer local version.
 
@@ -44,7 +44,7 @@ One `mise.toml` pins tool versions (Terraform) and defines tasks (init, plan, fm
 
 Use mise (Option A):
 
-- `mise.toml` (committed) pins the exact Terraform version and defines the tasks `fmt`, `init`, `validate` and `plan`. The pinned version starts as the current value of the `CICD_TERRAFORM_VERSION` repository variable, so CI keeps the same version. Tasks that act on a stage take the stage directory as an argument once ADR 0003 introduces stages.
+- `mise.toml` (committed) pins the exact Terraform version and defines the tasks `fmt`, `init`, `validate` and `plan`. The pinned version starts as the current value of the `CICD_TERRAFORM_VERSION` repository variable, so CI keeps the same version. Tasks that act on a stage take the stage directory as an argument once ADR 0006 introduces stages.
 - `mise.local.toml` (gitignored) holds every local setting:
   - the backend settings used by `init` (state bucket, region), as environment variables;
   - the Terraform variables, as `TF_VAR_*` environment variables.
@@ -86,4 +86,4 @@ Use mise (Option A):
 3. `docs(claude)`: the tasks and `mise.local.toml` in `CLAUDE.md`.
 4. `docs(readme)`: tools, local setup and repository variables in the README.
 
-If ADR 0003 Option A is implemented, it comes after this ADR and its stages reuse these tasks with the stage directory as argument.
+If ADR 0006 Option A is implemented, it comes after this ADR and its stages reuse these tasks with the stage directory as argument.

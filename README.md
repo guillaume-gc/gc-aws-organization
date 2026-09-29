@@ -73,4 +73,4 @@ Please note it is not advised to deploy resources locally in a production enviro
 
 ### AWS Control Tower
 
-AWS Control Tower is not set up. Whether to use it is still an open question, see [ADR 0003](docs/adr/0003-multi-stage-orchestration.md).
+AWS Control Tower is not set up. Whether to use it is still an open question, see [ADR 0006](docs/adr/0006-multi-stage-orchestration.md).

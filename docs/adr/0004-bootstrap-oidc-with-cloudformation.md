@@ -1,7 +1,7 @@
-# 1. Bootstrap the GitHub OIDC provider with CloudFormation
+# 4. Bootstrap the GitHub OIDC provider with CloudFormation
 
 - Status: Accepted
-- Date: 2024-10 (recorded retroactively on 2026-09-27)
+- Date: 2026-09-29
 
 ## Context
 

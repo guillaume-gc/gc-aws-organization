@@ -31,8 +31,8 @@ terraform plan -var-file=deploy.tfvars
 
 ## Manual prerequisites (outside Terraform)
 
-- The OIDC provider and deploy role (CloudFormation stack), see ADR 0001.
-- Enabling IAM Identity Center and managing its users, see ADR 0002.
+- The OIDC provider and deploy role (CloudFormation stack), see ADR 0004.
+- Enabling IAM Identity Center and managing its users, see ADR 0005.
 
 ## Conventions
 
