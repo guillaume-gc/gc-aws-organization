@@ -2,6 +2,8 @@
 
 Terraform project that manages a personal AWS Organization (OUs, accounts, IAM Identity Center, budget, Resource Explorer) from the **management account**. Applications are deployed elsewhere, not from this repository.
 
+This file states operational facts only, never decisions or their reasoning, and is never cited elsewhere as the reason for anything (see ADR 0001, ADR 0002). Where a rule below follows from a decision, it links to the ADR that made it.
+
 ## Layout
 
 - `organization.tf`: the organization, trusted service access, OUs (`Security`, `Infrastructure`).
@@ -24,10 +26,10 @@ terraform plan -var-file=deploy.tfvars
 
 ## Deployment
 
-- Every push to `main` runs `.github/workflows/on_push_main.yml` → `deploy.yml`, which runs `terraform apply -auto-approve` using OIDC credentials. There is no plan or review step.
+- Every push to `main` runs `.github/workflows/on_push_main.yml` → `deploy.yml`, which runs `terraform apply -auto-approve` using OIDC credentials, with no plan or review step (see ADR 0003).
 - Repository variables: `CICD_AWS_REGION`, `CICD_IAM_ROLE`, `CICD_TERRAFORM_VERSION`, `CICD_TERRAFORM_STATE_BUCKET`, `CICD_SERVICE_NAME`, `CICD_NOTIFICATION_EMAIL`.
-- Never obtain or use credentials (AWS profiles, SSO sessions, environment variables, secrets) without asking the user first. This applies to read-only commands too, such as `terraform plan` or `aws sts get-caller-identity`.
-- Do not run `terraform apply` or run AWS commands (especially write or delete operations) locally unless the user explicitly asks. This is the live organization, and account deletion closes accounts.
+- Never obtain or use credentials (AWS profiles, SSO sessions, environment variables, secrets) without asking the user first. This applies to read-only commands too, such as `terraform plan` or `aws sts get-caller-identity` (see ADR 0003).
+- Do not run `terraform apply` or run AWS commands (especially write or delete operations) locally unless the user explicitly asks (see ADR 0003).
 
 ## Manual prerequisites (outside Terraform)
 
@@ -42,4 +44,4 @@ terraform plan -var-file=deploy.tfvars
 - Never add a body (long description). Commit body should be enough.
 - Resource names are prefixed with `var.service_name` where AWS requires them to be unique.
 - Account names must be alphanumeric (validated in the account module).
-- Record significant architecture decisions as a new ADR in `docs/adr/` (`NNNN-title.md`: Status / Date / Context / Options considered (optional) / Decision / Consequences / Implementation plan (optional)). Keep the implementation plan to steps, deliverables and commit order, without code.
+- Record significant architecture decisions as a new ADR in `docs/adr/` (see ADR 0001 for what counts and the template).
