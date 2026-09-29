@@ -49,8 +49,8 @@ Use mise (Option A):
   - the backend settings used by `init` (state bucket, region), as environment variables;
   - the Terraform variables, as `TF_VAR_*` environment variables.
   It replaces `deploy.tfvars`, so local settings live in one file. A committed `mise.local.toml.example` lists the expected entries with placeholder values.
-- There is no `apply` task. Applies only run in CI (see `CLAUDE.md`).
-- Tasks do not select AWS credentials (profiles, SSO). The user provides them explicitly.
+- There is no `apply` task. Applies only run in CI (see ADR 0003).
+- Tasks do not select AWS credentials (profiles, SSO). The user provides them explicitly (see ADR 0003).
 - CI installs mise and Terraform with `jdx/mise-action`, with both the action and the mise version pinned. It sets the same environment variables as `mise.local.toml` from the repository variables, and runs the same `init`, `fmt` and `validate` tasks.
 
 ## Consequences
@@ -75,7 +75,7 @@ Use mise (Option A):
 ### Verification
 
 - Read the current `CICD_TERRAFORM_VERSION` value to pin it. This reads the repository settings on GitHub, so it is done by the user or with their agreement.
-- Run each task locally in PowerShell and in Git Bash. `init` and `plan` need AWS credentials, which are only used after the user agrees (see `CLAUDE.md`). `plan` must show no changes compared with the current deployment.
+- Run each task locally in PowerShell and in Git Bash. `init` and `plan` need AWS credentials, which are only used after the user agrees (see ADR 0003). `plan` must show no changes compared with the current deployment.
 - After the push, check that the CI run uses the pinned Terraform version and succeeds.
 - Only then remove the `CICD_TERRAFORM_VERSION` repository variable (by hand, in GitHub) and the local `deploy.tfvars`.
 

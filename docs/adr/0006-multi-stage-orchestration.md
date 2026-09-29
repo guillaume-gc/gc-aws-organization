@@ -160,7 +160,7 @@ To be completed once a decision is made.
 
 ### Verification
 
-- Before each push: `fmt` and `validate` on every changed stage, then `plan` on each stage locally. Running `plan` needs AWS credentials, which are only used after the user agrees (see `CLAUDE.md`). A stage 2 `plan` cannot run before its account exists, so the first time only `validate` applies to it.
+- Before each push: `fmt` and `validate` on every changed stage, then `plan` on each stage locally. Running `plan` needs AWS credentials, which are only used after the user agrees (see ADR 0003). A stage 2 `plan` cannot run before its account exists, so the first time only `validate` applies to it.
 - After the first run:
   - The account exists in the right OU.
   - The `baselines` job succeeded.
