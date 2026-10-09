@@ -10,24 +10,25 @@ This file states operational facts only, never decisions or their reasoning, and
 - `identity.tf`: IAM Identity Center groups, permission sets and account assignments (`aws-ia/iam-identity-center` module).
 - `budget.tf`, `resource_explorer.tf`: cost alerts and the organization-wide Resource Explorer.
 - `modules/template/account/`: one member account (generated email `gc.org.acc+<name>-<hex>@pm.me`, `close_on_deletion = true`).
+- `mise.toml`: the pinned Terraform version and the tasks.
 - `scripts/oicd_provider/template.yml`: the CloudFormation bootstrap for the GitHub OIDC provider and deploy role.
 - `docs/adr/`: Architecture Decision Records. Read them before changing the architecture.
 
 ## Commands
 
 ```bash
-terraform fmt -recursive          # required: CI fails on `fmt -check`
-terraform init -backend-config='key=main.tfstate' -backend-config='region=<region>' -backend-config='bucket=<state bucket>'
-terraform validate
-terraform plan -var-file=deploy.tfvars
+mise run fmt        # required: CI fails on `fmt -check`
+mise run init
+mise run validate
+mise run plan
 ```
 
-`deploy.tfvars` (gitignored) supplies `git_branch_name`, `aws_default_region`, `service_name` and `notification_emails`.
+The tasks are defined in `mise.toml`, which also pins the Terraform version (see ADR 0007). `mise.local.toml` (gitignored, template in `mise.local.toml.example`) supplies the backend settings (`TF_BACKEND_BUCKET`, `TF_BACKEND_REGION`) and the Terraform variables (`TF_VAR_git_branch_name`, `TF_VAR_aws_default_region`, `TF_VAR_service_name`, `TF_VAR_notification_emails`).
 
 ## Deployment
 
 - Every push to `main` runs `.github/workflows/on_push_main.yml` → `deploy.yml`, which runs `terraform apply -auto-approve` using OIDC credentials, with no plan or review step (see ADR 0003).
-- Repository variables: `CICD_AWS_REGION`, `CICD_IAM_ROLE`, `CICD_TERRAFORM_VERSION`, `CICD_TERRAFORM_STATE_BUCKET`, `CICD_SERVICE_NAME`, `CICD_NOTIFICATION_EMAIL`.
+- Repository variables: `CICD_AWS_REGION`, `CICD_IAM_ROLE`, `CICD_TERRAFORM_STATE_BUCKET`, `CICD_SERVICE_NAME`, `CICD_NOTIFICATION_EMAIL`.
 - Never obtain or use credentials (AWS profiles, SSO sessions, environment variables, secrets) without asking the user first. This applies to read-only commands too, such as `terraform plan` or `aws sts get-caller-identity` (see ADR 0003).
 - Do not run `terraform apply` or run AWS commands (especially write or delete operations) locally unless the user explicitly asks (see ADR 0003).
 
