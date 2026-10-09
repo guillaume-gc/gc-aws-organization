@@ -34,6 +34,7 @@ Constraints: personal organization, keep running costs minimal, GitHub Actions a
 **Cons:**
 - The pipeline glue has to be written and maintained, and each stage has its own state and backend key.
 - Account readiness (2) remains on the first creation, since stage 2 runs right after stage 1. It needs a step that retries assuming the account role before stage 2, or a manual re-run.
+- Giving a new account an IAM Identity Center assignment takes a second push, since stage 1 cannot assign an account it creates in the same apply.
 - Destroy order (3) becomes a process: remove the account's baseline stage in one push, then the account in a later push. A mistake is costly because accounts use `close_on_deletion = true`.
 - Every stage runs `terraform apply -auto-approve` on push, so more states mean more unreviewed applies.
 
@@ -113,6 +114,7 @@ To be completed once a decision is made.
 - Declare member accounts in one map keyed by account name, whose values describe the account (for example `{ parent_ou_id = ... }`), and create them with `for_each` over `modules/template/account/`. Its entries are the accounts decided in ADR 0008.
 - Add an `accounts` output: account name → `{ id, role_name }`.
 - In `identity.tf`, add the member account IDs from that map to the `Admin` group assignment, so the new accounts are reachable through IAM Identity Center.
+- An account must exist before it is added to the assignment. The `aws-ia/iam-identity-center` module uses the account ID in its `for_each` keys, so the plan fails when the account is created in the same apply. Adding an account therefore takes two pushes: the account, then its assignment.
 
 ### Stage 2 structure (per account)
 
@@ -127,6 +129,7 @@ To be completed once a decision is made.
 - `terraform fmt -check -recursive` covers every stage, so it runs once, in the `organization` job. `terraform validate` runs in every job.
 - `deploy.yml` gets two jobs: `organization`, then `baselines` with `needs: organization`, a static matrix of baseline directories and `fail-fast: false`.
 - Before applying a baseline, a script waits for the account: it finds the account ID by name with `aws organizations list-accounts` (management credentials, no stage 1 init needed), then retries `aws sts assume-role` on the account role (for example every 30 seconds for up to 10 minutes). The AWS CLI is preinstalled on GitHub runners.
+- With the job order and the wait, an account and its baseline can be added in the same push: the baseline is only applied once the account exists and its role can be assumed.
 
 ### Manual prerequisites (outside Terraform, see ADR 0004)
 
@@ -140,10 +143,9 @@ To be completed once a decision is made.
 - `CLAUDE.md`: layout (`baselines/`, `docs/runbooks/`), commands per stage, and the two-job deployment.
 - README: prerequisites and layout.
 - `docs/runbooks/add-account.md`:
-  1. Add the account to the stage 1 map.
-  2. Create `baselines/<AccountName>/`, starting from an existing baseline.
-  3. Add the directory to the pipeline matrix.
-  4. Push, then check the result (see Verification).
+  1. Add the account to the stage 1 map, create its baseline directory (starting from an existing baseline) and add the directory to the pipeline matrix. Push.
+  2. Once the account exists, add it to the `Admin` group assignment. Push.
+  3. Check the result (see Verification).
 - `docs/runbooks/remove-account.md`. Deleting a baseline directory destroys nothing: the pipeline stops running it and its state is left behind. So:
   1. Check that the data the baseline holds (such as logs) is no longer needed, including the account-specific effects listed in ADR 0008.
   2. Empty any bucket that does not use `force_destroy`.
