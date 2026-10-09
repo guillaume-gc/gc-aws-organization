@@ -11,14 +11,23 @@ jobs:
       id-token: write
       contents: read
 
+    env:
+      TF_CLI_ARGS: -no-color
+      TF_BACKEND_BUCKET: ${{ vars.CICD_TERRAFORM_STATE_BUCKET }}
+      TF_BACKEND_REGION: ${{ vars.CICD_AWS_REGION }}
+      TF_VAR_git_branch_name: main
+      TF_VAR_aws_default_region: ${{ vars.CICD_AWS_REGION }}
+      TF_VAR_service_name: ${{ vars.CICD_SERVICE_NAME }}
+      TF_VAR_notification_emails: '["${{ vars.CICD_NOTIFICATION_EMAIL }}"]'
+
     steps:
       - name: Git Checkout
         uses: actions/checkout@v4
 
       - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: jdx/mise-action@7a4e45a543138629540c9a1616d08632b893e492 # v5.0.1
         with:
-          terraform_version: ${{ vars.CICD_TERRAFORM_VERSION }}
+          version: 2026.10.0
 
       - name: Create Temporary AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -30,10 +39,13 @@ jobs:
         run: ls ./ -a
 
       - name: Terraform Init
-        run: terraform init -no-color -backend-config='key=main.tfstate' -backend-config='region=${{ vars.CICD_AWS_REGION }}' -backend-config='bucket=${{ vars.CICD_TERRAFORM_STATE_BUCKET }}'
+        run: mise run init
 
       - name: Terraform Format Check
-        run: terraform fmt -no-color -check -recursive
+        run: mise run fmt -- -check
+
+      - name: Terraform Validate
+        run: mise run validate
 
       - name: Terraform Apply
-        run: terraform apply -no-color -auto-approve -var='git_branch_name=main' -var='aws_default_region=${{ vars.CICD_AWS_REGION }}' -var='service_name=${{ vars.CICD_SERVICE_NAME }}' -var='notification_emails=["${{ vars.CICD_NOTIFICATION_EMAIL }}"]'
+        run: terraform apply -auto-approve
