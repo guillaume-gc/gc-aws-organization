@@ -1,0 +1,11 @@
+# Copy to mise.local.toml (gitignored) and fill in the values.
+[env]
+# Backend used by `mise run init`
+TF_BACKEND_BUCKET = "<state bucket>"
+TF_BACKEND_REGION = "<region>"
+
+# Terraform variables
+TF_VAR_git_branch_name = "<branch name>"
+TF_VAR_aws_default_region = "<region>"
+TF_VAR_service_name = "<service name>"
+TF_VAR_notification_emails = '["<email>"]'

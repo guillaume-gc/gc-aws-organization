@@ -1,0 +1,18 @@
+[tools]
+terraform = "1.12.2"
+
+[tasks.fmt]
+description = "Format the code"
+run = "terraform fmt -recursive"
+
+[tasks.init]
+description = "Initialize Terraform with the S3 backend"
+run = "terraform init -backend-config=key=main.tfstate -backend-config=region={{env.TF_BACKEND_REGION}} -backend-config=bucket={{env.TF_BACKEND_BUCKET}}"
+
+[tasks.validate]
+description = "Validate the Terraform configuration"
+run = "terraform validate"
+
+[tasks.plan]
+description = "Show the Terraform plan"
+run = "terraform plan"
