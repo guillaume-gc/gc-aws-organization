@@ -16,7 +16,7 @@ An attempt was made and then removed (see commit `203a39b`, "remove factory"). I
 
 In this ADR, an **account baseline** is the set of resources that one member account needs once it exists (for example, the CloudTrail log bucket in LogArchive). It is distinct from creating the account itself, which happens in the management account.
 
-Needed baselines include, for example, the organization CloudTrail bucket in LogArchive and the organization trail. An organization trail can only be created from the management account or from a CloudTrail delegated administrator account. The trail depends on the bucket, and the bucket depends on the LogArchive account, so the trail cannot be created in the same apply as the account either.
+Which accounts are created, and what their baselines contain, is decided in ADR 0008. A baseline can also need resources in the management account. For example, the organization CloudTrail bucket in LogArchive and the organization trail: an organization trail can only be created from the management account or from a CloudTrail delegated administrator account. The trail depends on the bucket, and the bucket depends on the LogArchive account, so the trail cannot be created in the same apply as the account either.
 
 Member accounts are reached through the role created by `aws_organizations_account` (`<service_name>_<name>_Root`), which the deploy role in the management account assumes.
 
@@ -93,14 +93,13 @@ To be completed once a decision is made.
 ### Layout
 
 ```
-.                        # stage 1: organization (key main.tfstate, unchanged)
+.                      # stage 1: organization (key main.tfstate, unchanged)
 └── baselines/
-    ├── LogArchive/      # stage 2: key baselines/LogArchive.tfstate
-    └── SecurityTooling/ # stage 2: key baselines/SecurityTooling.tfstate
+    └── <AccountName>/ # stage 2: key baselines/<AccountName>.tfstate, one per account (see ADR 0008)
 ```
 
 - Stage 1 stays at the repository root, so its state needs no migration. Terraform only loads the `.tf` files of the directory it runs in, so the root apply ignores `baselines/`.
-- Each baseline directory is named exactly after its account name (as passed to `modules/template/account/`). The directory name is the key used to look up the account in the stage 1 outputs, the backend key and the pipeline matrix entry.
+- Each baseline directory is named exactly after its account name (as passed to `modules/template/account/`). The directory name is the key used to look up the account in the stage 1 outputs, the backend key (`baselines/<AccountName>.tfstate`) and the pipeline matrix entry.
 
 ### Prerequisites
 
@@ -111,7 +110,7 @@ To be completed once a decision is made.
 
 ### Stage 1 changes
 
-- Declare member accounts in one map keyed by account name, whose values describe the account (for example `{ parent_ou_id = ... }`), and create them with `for_each` over `modules/template/account/`.
+- Declare member accounts in one map keyed by account name, whose values describe the account (for example `{ parent_ou_id = ... }`), and create them with `for_each` over `modules/template/account/`. Its entries are the accounts decided in ADR 0008.
 - Add an `accounts` output: account name → `{ id, role_name }`.
 - In `identity.tf`, add the member account IDs from that map to the `Admin` group assignment, so the new accounts are reachable through IAM Identity Center.
 
@@ -121,12 +120,6 @@ To be completed once a decision is made.
 - Inputs: `aws_default_region`, `service_name`, `git_branch_name` and `state_bucket`. In CI they come from the repository variables (`CICD_TERRAFORM_STATE_BUCKET` for `state_bucket`). Locally they come from the settings defined in ADR 0007.
 - `terraform_remote_state` on `main.tfstate` (using `state_bucket` and `aws_default_region`) to read the `accounts` output.
 - Two providers: the management account (pipeline credentials) and the member account (`assume_role` on `arn:aws:iam::<id>:role/<role_name>`). Both set the same `default_tags` as stage 1 (`GitBranch`, `Service`, `ManagedBy`).
-
-### LogArchive baseline
-
-- In the member account: an S3 bucket named with the `var.service_name` prefix, with public access blocked, a bucket policy allowing CloudTrail to write the organization's logs (`AWSLogs/<organization id>/*`, restricted by `aws:SourceArn` to the trail), and a lifecycle rule that expires logs after a retention period to decide (for running costs).
-- Decide whether the bucket uses `force_destroy`. Without it, removing the baseline fails until the bucket is emptied by hand.
-- In the management account: a multi-region organization trail (`is_organization_trail = true`) writing to the bucket, depending on the bucket policy. CloudTrail trusted access is already enabled in `organization.tf`. The first copy of management events is free, so the cost is S3 storage.
 
 ### Pipeline
 
@@ -152,9 +145,9 @@ To be completed once a decision is made.
   3. Add the directory to the pipeline matrix.
   4. Push, then check the result (see Verification).
 - `docs/runbooks/remove-account.md`. Deleting a baseline directory destroys nothing: the pipeline stops running it and its state is left behind. So:
-  1. Check that the data the baseline holds (such as logs) is no longer needed. For LogArchive, removing the baseline also deletes the organization trail, which stops logging for the whole organization.
-  2. Empty the bucket if it does not use `force_destroy`.
-  3. Remove all resources from the baseline directory (keep the backend, providers and variables) and push, so the apply destroys them. Terraform deletes the trail before the bucket, since the trail depends on it.
+  1. Check that the data the baseline holds (such as logs) is no longer needed, including the account-specific effects listed in ADR 0008.
+  2. Empty any bucket that does not use `force_destroy`.
+  3. Remove all resources from the baseline directory (keep the backend, providers and variables) and push, so the apply destroys them.
   4. Remove the account from the pipeline matrix and from the stage 1 map, delete the baseline directory, and push. The account is closed (`close_on_deletion = true`).
   5. Delete the stage's state file from the state bucket.
 
@@ -163,6 +156,5 @@ To be completed once a decision is made.
 - Before each push: `fmt` and `validate` on every changed stage, then `plan` on each stage locally. Running `plan` needs AWS credentials, which are only used after the user agrees (see ADR 0003). A stage 2 `plan` cannot run before its account exists, so the first time only `validate` applies to it.
 - After the first run:
   - The account exists in the right OU.
-  - The `baselines` job succeeded.
-  - The trail is logging (`aws cloudtrail get-trail-status`) and log files reach the bucket.
+  - The `baselines` job succeeded, and the baseline passes its own checks (see ADR 0008).
   - The account is reachable through IAM Identity Center.
