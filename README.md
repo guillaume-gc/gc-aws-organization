@@ -7,8 +7,10 @@ This personal project uses Terraform to create and manage my own AWS Organizatio
 ## Prerequisites
 
 ### Tools
-- Terraform (>= 1.12)
+- [mise](https://mise.jdx.dev), which installs the pinned Terraform version (`mise.toml`) and runs the saved commands. On Windows: `winget install jdx.mise` or `scoop install mise`.
 - Git
+
+Without mise, any Terraform version >= 1.12 works, but the saved commands are not available.
 
 ### OIDC Provider
 
@@ -30,7 +32,6 @@ The GitHub Actions pipeline requires the following repository variables to be co
 |-------------------------------|--------------------------------------------------------------------------------|
 | `CICD_AWS_REGION`             | AWS region for Terraform state storage and default resource deployment.        |
 | `CICD_IAM_ROLE`               | ARN of the IAM role used by the OIDC provider for authentication.              |
-| `CICD_TERRAFORM_VERSION`      | Version of the Terraform executable to use.                                    |
 | `CICD_TERRAFORM_STATE_BUCKET` | S3 bucket name for Terraform state storage.                                    |
 | `CICD_SERVICE_NAME`           | Service identifier for resource management (recommended: use repository name). |
 | `CICD_NOTIFICATION_EMAIL`     | Email address for deployment notifications and alerts.                         |
@@ -51,7 +52,7 @@ The GitHub Actions pipeline requires the following repository variables to be co
 
 GitHub actions ensure all commits pushed to the main branch trigger a `terraform apply`.
 
-Make sure the code is correctly formated using `terraform fmt -recursive`, otherwise the pipeline will fail.
+Make sure the code is correctly formated using `mise run fmt`, otherwise the pipeline will fail.
 
 For now, feature branch deployment is not implemented.
 
@@ -59,17 +60,17 @@ For now, feature branch deployment is not implemented.
 
 Please note it is not advised to deploy resources locally in a production environment.
 
-1. Make sure you have valid AWS credentials.
+1. Copy `mise.local.toml.example` to `mise.local.toml` and fill in the backend settings and Terraform variables.
 
-2. Initialize Terraform (assuming there is a `.tfbackend` file with variables, see `.github/workflows/deploy.yml` for a variable list):
+2. Make sure you have valid AWS credentials.
+
+3. Initialize Terraform and check the changes:
     ```bash
-    terraform init
+    mise run init
+    mise run plan
     ```
 
-3. Deploy resources (assuming there is a `.tfvars` file with variables):
-    ```bash
-    terraform apply
-    ```
+There is no `apply` task: resources are only applied by the pipeline.
 
 ### AWS Control Tower
 
