@@ -18,10 +18,11 @@ Decisions about this project's architecture and conventions — how it's deploye
   - copies of code or configuration that live in the repository;
   - paths to source code files (folders, documentation and other ADRs can still be referenced);
   - environment-specific values (account IDs, emails, bucket names).
-- ADRs are numbered in the order they're adopted, and the number is permanent once accepted: a later decision that changes or reverses an earlier one gets a new ADR that supersedes it, not an edit to the old number.
+- ADRs are numbered in the order they're adopted, and the number is permanent.
+- Once the repository is stable, an accepted ADR is never edited directly: a later decision that changes or reverses it gets a new ADR that supersedes it. Until then, accepted ADRs can be edited in place. The repository is stable once the organization and all its base accounts (see ADR 0008) are created, each with its account baseline deployed. This is a personal project with a single operator: while the base is being built, decisions change often and no one else relies on their history, so superseding ADRs would add overhead without benefit.
 
 ## Consequences
 
-- A future architecture-significant rule needs a new or superseding ADR, not just a note added to whatever file is convenient.
+- A future architecture-significant rule needs an ADR, not just a note added to whatever file is convenient.
 - The reasoning behind a rule always has exactly one place to look, instead of being scattered across commit messages, comments, or informal notes.
 - Every decision from here on gets an ADR, including ones that feel obvious at the time — the cost is paid once and pays off whenever the decision needs to be revisited.
