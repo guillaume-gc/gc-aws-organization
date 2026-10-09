@@ -9,7 +9,7 @@ The GitHub Actions pipeline authenticates to the management account through an I
 
 ## Decision
 
-Create the OIDC provider and the deploy role once, by hand, from the CloudFormation template `scripts/oicd_provider/template.yml`. Terraform does not manage them.
+Create the OIDC provider and the deploy role once, by hand, from the CloudFormation template in `scripts/oicd_provider/`. Terraform does not manage them.
 
 ## Consequences
 

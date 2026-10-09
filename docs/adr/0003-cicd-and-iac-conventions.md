@@ -10,7 +10,7 @@ This is a personal AWS Organization, managed as Terraform and deployed by GitHub
 ## Decision
 
 - Terraform, applied from the management account, is the only way the organization is changed.
-- `apply` runs only in CI: every push to `main` triggers `.github/workflows/on_push_main.yml` → `terraform apply -auto-approve`, with no plan or review step gating it.
+- `apply` runs only in CI: every push to `main` triggers `on_push_main.yml` → `terraform apply -auto-approve`, with no plan or review step gating it.
 - AWS credentials (profiles, SSO sessions, environment variables, secrets) are never used — locally, or by an agent such as Claude — without the user's explicit, per-use consent. This applies even to read-only calls (`terraform plan`, `aws sts get-caller-identity`), because the organization being read is real.
 - Local `terraform apply` and other write or delete AWS commands are not run unless the user explicitly asks, for the same reason.
 

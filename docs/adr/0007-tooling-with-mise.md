@@ -79,11 +79,4 @@ Use mise (Option A):
 - After the push, check that the CI run uses the pinned Terraform version and succeeds.
 - Only then remove the `CICD_TERRAFORM_VERSION` repository variable (by hand, in GitHub) and the local `deploy.tfvars`.
 
-### Commits
-
-1. `chore(tooling)`: `mise.toml`, `mise.local.toml.example`, and `mise.local.toml` in `.gitignore`.
-2. `feat(cicd)`: install Terraform with `jdx/mise-action` and use the tasks and `TF_VAR_*` variables in `deploy.yml`.
-3. `docs(claude)`: the tasks and `mise.local.toml` in `CLAUDE.md`.
-4. `docs(readme)`: tools, local setup and repository variables in the README.
-
 If ADR 0006 Option A is implemented, it comes after this ADR and its stages reuse these tasks with the stage directory as argument.

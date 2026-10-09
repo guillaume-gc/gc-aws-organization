@@ -11,6 +11,13 @@ Decisions about this project's architecture and conventions — how it's deploye
 
 - Record every architecture-significant decision as an ADR in `docs/adr/`, one file per decision: Status, Date, Context, Options considered (optional), Decision, Consequences, Implementation plan (optional).
 - A decision is architecture-significant when it is costly or risky to reverse, changes the deployment pipeline or the account/security model, or introduces a convention other contributors (human or agent) are expected to follow. Routine implementation choices don't need one.
+- An ADR does not contain:
+  - commit plans (commit lists, messages or order);
+  - progress tracking (what is done or left to do);
+  - step-by-step procedures, which go in runbooks;
+  - copies of code or configuration that live in the repository;
+  - paths to source code files (folders, documentation and other ADRs can still be referenced);
+  - environment-specific values (account IDs, emails, bucket names).
 - ADRs are numbered in the order they're adopted, and the number is permanent once accepted: a later decision that changes or reverses an earlier one gets a new ADR that supersedes it, not an edit to the old number.
 
 ## Consequences

@@ -5,9 +5,9 @@
 
 ## Context
 
-The repository is a single Terraform root module with a single state (`main.tfstate`), applied from the management account. It can create member accounts through `modules/template/account` (no member account is currently deployed, see commit `fc5edd6`), but it cannot deploy baseline resources *into* those accounts in the same apply.
+The repository is a single Terraform root module with a single state (`main.tfstate`), applied from the management account. It can create member accounts through `modules/template/account/` (no member account is currently deployed, see commit `fc5edd6`), but it cannot deploy baseline resources *into* those accounts in the same apply.
 
-An attempt was made and then removed (see commit `203a39b`, "remove factory"). It used modules `modules/factory/log_archive` and `modules/factory/security_tooling`, each declaring its own `provider "aws"` that assumed the new account's role using `module.<account>.account_id`. It failed for these reasons:
+An attempt was made and then removed (see commit `203a39b`, "remove factory"). It used modules `modules/factory/log_archive/` and `modules/factory/security_tooling/`, each declaring its own `provider "aws"` that assumed the new account's role using `module.<account>.account_id`. It failed for these reasons:
 
 1. **Provider settings must be known at plan time.** On the first apply, the account ID is unknown, so the provider for that account cannot be set up. It either errors or works only on a second apply.
 2. **New accounts are not ready right away.** `CreateAccount` runs asynchronously, and the new account's role cannot be assumed for a while after it exists. That gives intermittent `AccessDenied` errors.
@@ -27,7 +27,7 @@ Constraints: personal organization, keep running costs minimal, GitHub Actions a
 ### A. Separate states per stage, run in order by the pipeline
 
 - Stage 1 (`organization`) covers the organization, OUs, accounts, Identity Center and the delegated admins. It outputs account IDs and role names.
-- Stage 2 (`baselines/<AccountName>`) is one root module per account (or one shared module used per account). Its provider assumes the account role, and it reads stage 1 outputs through `terraform_remote_state` or SSM parameters. A stage can also declare a management account provider for resources that must live there but depend on the account's baseline, such as the organization trail in the LogArchive stage.
+- Stage 2 (`baselines/<AccountName>/`) is one root module per account (or one shared module used per account). Its provider assumes the account role, and it reads stage 1 outputs through `terraform_remote_state` or SSM parameters. A stage can also declare a management account provider for resources that must live there but depend on the account's baseline, such as the organization trail in the LogArchive stage.
 - A GitHub Actions job dependency (`needs:`) enforces the order, with a matrix over accounts for stage 2.
 
 **Pros:** plain Terraform, no extra tools, no extra AWS cost. Provider settings are always known at plan time (fixes 1), and each baseline root module owns its provider (fixes 4).
@@ -100,7 +100,7 @@ To be completed once a decision is made.
 ```
 
 - Stage 1 stays at the repository root, so its state needs no migration. Terraform only loads the `.tf` files of the directory it runs in, so the root apply ignores `baselines/`.
-- Each baseline directory is named exactly after its account name (as passed to `modules/template/account`). The directory name is the key used to look up the account in the stage 1 outputs, the backend key and the pipeline matrix entry.
+- Each baseline directory is named exactly after its account name (as passed to `modules/template/account/`). The directory name is the key used to look up the account in the stage 1 outputs, the backend key and the pipeline matrix entry.
 
 ### Prerequisites
 
@@ -111,7 +111,7 @@ To be completed once a decision is made.
 
 ### Stage 1 changes
 
-- Declare member accounts in one map keyed by account name, whose values describe the account (for example `{ parent_ou_id = ... }`), and create them with `for_each` over `modules/template/account`.
+- Declare member accounts in one map keyed by account name, whose values describe the account (for example `{ parent_ou_id = ... }`), and create them with `for_each` over `modules/template/account/`.
 - Add an `accounts` output: account name → `{ id, role_name }`.
 - In `identity.tf`, add the member account IDs from that map to the `Admin` group assignment, so the new accounts are reachable through IAM Identity Center.
 
@@ -166,18 +166,3 @@ To be completed once a decision is made.
   - The `baselines` job succeeded.
   - The trail is logging (`aws cloudtrail get-trail-status`) and log files reach the bucket.
   - The account is reachable through IAM Identity Center.
-
-### Commits
-
-1. `fix(cicd)`: state locking and the `concurrency` group. Independent of this ADR, can be done now.
-2. The ADR 0007 commits.
-3. `feat(cicd)`: composite action and the two-job `deploy.yml`, stage 1 only (no behavior change).
-4. `feat(account)`: accounts with `for_each` and the `accounts` output. Pushing it creates the accounts.
-5. `feat(identity)`: assign the `Admin` group to the member accounts.
-6. `feat(baseline)`: `baselines/LogArchive` (bucket and trail), the wait script and the matrix entry. Pushing it creates the bucket and the trail.
-7. `docs(runbook)`: the add and remove account runbooks.
-8. `docs(claude)`: `CLAUDE.md` layout, commands, deployment and prerequisites.
-9. `docs(readme)`: README prerequisites and layout.
-10. `docs(adr)`: accept this ADR and complete its consequences.
-
-The manual prerequisites must be in place before commit 6 is pushed.
